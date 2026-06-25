@@ -1,114 +1,22 @@
-import bcrypt
-from flask import Flask, request, jsonify, session
+from flask import Flask
 from flask_cors import CORS
-import mysql.connector
-from dotenv import load_dotenv
-import os
-
-load_dotenv()  # Load environment variables from .env file
+from config import Config
+from routes.auth import auth_bp
+from routes.posts import posts_bp
+from routes.users import users_bp
+from routes.feed import feed_bp
 
 app = Flask(__name__)
+app.secret_key = Config.SECRET_KEY
+CORS(app, supports_credentials=True, origins=Config.CORS_ORIGINS)
 
-# Secret key is required to cryptographically sign the session cookie
-app.secret_key = 'replace_with_a_strong_secret_key'
+app.register_blueprint(auth_bp)
+app.register_blueprint(posts_bp)
+app.register_blueprint(users_bp)
+app.register_blueprint(feed_bp)
 
-# CORS updated to support credentials (cookies)
-CORS(app, supports_credentials=True, origins=['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5174', 'http://127.0.0.1:5174'])
-
-def get_db():
-    return mysql.connector.connect(
-       host=os.getenv('DB_HOST'),
-        user=os.getenv('DB_USER'),
-        password=os.getenv('DB_PASSWORD'),
-        database=os.getenv('DB_NAME')
-    )
-
-def fetchall_dict(cursor):
-    columns = [col[0] for col in cursor.description]
-    return [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-def fetchone_dict(cursor):
-    columns = [col[0] for col in cursor.description]
-    row = cursor.fetchone()
-    return dict(zip(columns, row)) if row else None
-
-@app.route('/api/signup', methods=['POST'])
-def signup():
-    data = request.get_json(silent=True)  # Use silent=True to avoid exceptions on invalid JSON
-    if not data:
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    name = data.get('name', '').strip()
-    email = data.get('email', '').strip()
-    plain_pass = data.get('password')
-
-    if not name or not email or not plain_pass:
-        return jsonify({'message': 'Name, email, and password are required'}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-    if fetchone_dict(cursor):
-        cursor.close()
-        conn.close()
-        return jsonify({'message': 'Email already registered'}), 400
-
-    # Hash the password using bcrypt
-    salt = bcrypt.gensalt()
-    hashed_password = bcrypt.hashpw(plain_pass.encode('utf-8'), salt).decode('utf-8')
-
-    cursor.execute(
-        "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
-        (name, email, hashed_password)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'message': 'Registered successfully'}), 201
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.get_json(silent=True)
-    if not data:
-        return jsonify({'message': 'Invalid JSON payload'}), 400
-    
-    email = data.get('email', '').strip()
-    plain_pass = data.get('password')
-
-    if not email or not plain_pass:
-        return jsonify({'message': 'Email and password are required'}), 400
-
-    conn = get_db()
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT id, name, email, password, profile_picture FROM users WHERE email = %s", (email,))
-    user = fetchone_dict(cursor)
-
-    cursor.close()
-    conn.close()
-
-    # Verify the password against the stored bcrypt hash
-    if not user or not bcrypt.checkpw(plain_pass.encode('utf-8'), user['password'].encode('utf-8')):
-        return jsonify({'message': 'Invalid credentials'}), 401
-
-    # Store user id in the session
-    session['user_id'] = user['id']
-
-    return jsonify({
-        'message': 'Login successful', 
-        'user': {
-            'id': user['id'],
-            'name': user['name'],
-            'email': user['email'],
-            'profile_picture': user['profile_picture']
-        }
-    }), 200
-
-@app.route('/api/logout', methods=['POST'])
-def logout():
-    session.pop('user_id', None)
-    return jsonify({'message': 'Logged out successfully'}), 200
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
 
 @app.route('/api/posts', methods=['GET'])
 def get_posts():
