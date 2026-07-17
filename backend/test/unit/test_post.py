@@ -4,46 +4,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 from app import app
-
-
-class DummyCursor:
-    def __init__(self, description=(), rows=None, one=None):
-        self.description = description
-        self.rows = rows or []
-        self.one = one
-        self.queries = []
-        self.lastrowid = 42
-
-    def execute(self, query, params=None):
-        self.queries.append((query, params or ()))
-
-    def fetchall(self):
-        return self.rows
-
-    def fetchone(self):
-        if self.one is not None:
-            result = self.one
-            self.one = None
-            return result
-        return self.rows[0] if self.rows else None
-
-    def close(self):
-        pass
-
-
-class DummyConnection:
-    def __init__(self, cursor):
-        self._cursor = cursor
-        self.committed = False
-
-    def cursor(self):
-        return self._cursor
-
-    def commit(self):
-        self.committed = True
-
-    def close(self):
-        pass
+from mock_db import DummyCursor, DummyConnection
 
 
 @patch('routes.posts.get_db')
@@ -106,14 +67,14 @@ def test_create_post_requires_login():
     assert response.get_json() == {'message': 'Unauthorized. Please log in.'}
 
 
+@patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
 @patch('routes.posts.get_db')
-def test_create_post_succeeds_when_logged_in(mock_get_db):
+def test_create_post_succeeds_when_logged_in(mock_get_db, mock_get_user):
     cursor = DummyCursor()
     mock_get_db.return_value = DummyConnection(cursor)
 
     client = app.test_client()
-    with client.session_transaction() as sess:
-        sess['user_id'] = 3
+    client.set_cookie('session_token', 'test-token')
 
     response = client.post('/api/posts', json={
         'title': 'New Post',
@@ -166,8 +127,9 @@ def test_get_user_by_id_not_found(mock_get_db):
     assert response.get_json() == {'message': 'User not found'}
 
 
+@patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
 @patch('routes.users.get_db')
-def test_get_user_by_id_returns_user_and_following_flag(mock_get_db):
+def test_get_user_by_id_returns_user_and_following_flag(mock_get_db, mock_get_user):
     cursor = DummyCursor(
         description=(
             ('id',),
@@ -186,8 +148,7 @@ def test_get_user_by_id_returns_user_and_following_flag(mock_get_db):
     mock_get_db.return_value = DummyConnection(cursor)
 
     client = app.test_client()
-    with client.session_transaction() as sess:
-        sess['user_id'] = 3
+    client.set_cookie('session_token', 'test-token')
 
     response = client.get('/api/users/7')
 
