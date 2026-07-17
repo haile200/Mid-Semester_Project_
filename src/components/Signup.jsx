@@ -6,6 +6,7 @@ import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../api';
+import styles from './Signup.module.css';
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -22,6 +23,16 @@ export default function Signup() {
 
         if (!name.trim() || !email.trim() || !password) {
             setMessage('Please fill in all fields.');
+            return;
+        }
+
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+            setMessage('Please enter a valid email address.');
+            return;
+        }
+
+        if (password.length < 8) {
+            setMessage('Password must be at least 8 characters.');
             return;
         }
 
@@ -58,51 +69,60 @@ export default function Signup() {
                 ) : null}
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Name</Typography>
-                <TextField
-                    fullWidth
-                    placeholder="Your name"
-                    size="small"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    sx={{ mb: 2 }}
-                />
+                <Box sx={{ mb: 2 }} data-cy="signup-name">
+                    <TextField
+                        fullWidth
+                        placeholder="Your name"
+                        size="small"
+                        value={name}
+                        name="signupName"
+                        onChange={(e) => setName(e.target.value)}
+                    />
+                </Box>
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Email</Typography>
-                <TextField
-                    fullWidth
-                    placeholder="you@example.com"
-                    size="small"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    sx={{ mb: 2 }}
-                />
+                <Box sx={{ mb: 2 }} data-cy="signup-email">
+                    <TextField
+                        fullWidth
+                        placeholder="you@example.com"
+                        size="small"
+                        value={email}
+                        name="signupEmail"
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </Box>
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Password</Typography>
-                <TextField
-                    fullWidth
-                    type="password"
-                    placeholder="........"
-                    size="small"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    sx={{ mb: 2 }}
-                />
+                <Box sx={{ mb: 2 }} data-cy="signup-password">
+                    <TextField
+                        fullWidth
+                        type="password"
+                        placeholder="........"
+                        size="small"
+                        value={password}
+                        name="signupPassword"
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Box>
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Repeat Password</Typography>
-                <TextField
-                    fullWidth
-                    type="password"
-                    placeholder="........"
-                    size="small"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    sx={{ mb: 3 }}
-                />
+                <Box sx={{ mb: 3 }} data-cy="signup-confirm-password">
+                    <TextField
+                        fullWidth
+                        type="password"
+                        placeholder="........"
+                        size="small"
+                        value={confirmPassword}
+                        name="signupConfirmPassword"
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                </Box>
 
                 <Button
                     fullWidth
                     variant="contained"
                     disabled={isLoading}
+                    data-cy="signup-submit"
                     onClick={handleSubmit}
                     sx={{ backgroundColor: '#7b61ff', textTransform: 'none', py: 1.5, mb: 3, borderRadius: '8px' }}
                 >
@@ -112,7 +132,7 @@ export default function Signup() {
                 <Typography variant="body2" align="center">
                     Already have an account?{' '}
                     <span
-                        style={{ color: '#4a29f0', cursor: 'pointer', fontWeight: 'bold' }}
+                        className={styles.loginLink}
                         onClick={() => navigate('/login')}
                     >
                         Login

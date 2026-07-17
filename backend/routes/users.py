@@ -1,7 +1,8 @@
 import mysql.connector
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from db import get_db
 from utils import fetchall_dict, fetchone_dict
+from routes.auth import current_user_id
 
 users_bp = Blueprint('users', __name__, url_prefix='/api')
 
@@ -67,11 +68,11 @@ def get_user_by_id(user_id):
         conn.close()
         return jsonify({'message': 'User not found'}), 404
 
-    current_user_id = session.get('user_id')
+    viewer_id = current_user_id()
     is_following = False
 
-    if current_user_id:
-        cursor.execute("SELECT 1 FROM followers WHERE follower_id = %s AND following_id = %s", (current_user_id, user_id))
+    if viewer_id:
+        cursor.execute("SELECT 1 FROM followers WHERE follower_id = %s AND following_id = %s", (viewer_id, user_id))
         is_following = bool(cursor.fetchone())
 
     user['is_following'] = is_following
@@ -84,7 +85,7 @@ def get_user_by_id(user_id):
 
 @users_bp.route('/users/profile', methods=['PUT'])
 def update_profile():
-    user_id = session.get('user_id')
+    user_id = current_user_id()
     if not user_id:
         return jsonify({'message': 'Unauthorized. Please log in.'}), 401
 
@@ -111,7 +112,7 @@ def update_profile():
 
 @users_bp.route('/follow/<int:following_id>', methods=['POST', 'DELETE'])
 def follow_user(following_id):
-    follower_id = session.get('user_id')
+    follower_id = current_user_id()
     if not follower_id:
         return jsonify({'message': 'Unauthorized. Please log in.'}), 401
 

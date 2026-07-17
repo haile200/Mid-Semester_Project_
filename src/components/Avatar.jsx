@@ -1,5 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
+import styles from './Avatar.module.css';
 
 export default function Avatar({ name = 'User', profileImage = null, size = 40 }) {
     // Generate initials from name
@@ -42,11 +43,7 @@ export default function Avatar({ name = 'User', profileImage = null, size = 40 }
             <img
                 src={avatarUrl}
                 alt={name}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                }}
+                className={styles.image}
                 onError={(e) => {
                     // Fallback if image fails to load
                     e.target.style.display = 'none';

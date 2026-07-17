@@ -1,14 +1,15 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from db import get_db
 from utils import fetchall_dict
+from routes.auth import current_user_id
 
 feed_bp = Blueprint('feed', __name__, url_prefix='/api')
 
 
 @feed_bp.route('/feed/following', methods=['GET'])
 def get_following_feed():
-    current_user_id = session.get('user_id')
-    if not current_user_id:
+    viewer_id = current_user_id()
+    if not viewer_id:
         return jsonify({'message': 'Unauthorized. Please log in.'}), 401
 
     start = int(request.args.get('start', 0))
@@ -28,7 +29,7 @@ def get_following_feed():
 
     conn = get_db()
     cursor = conn.cursor()
-    cursor.execute(query, (current_user_id, limit, start))
+    cursor.execute(query, (viewer_id, limit, start))
     posts = fetchall_dict(cursor)
     cursor.close()
     conn.close()

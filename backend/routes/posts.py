@@ -1,6 +1,7 @@
-from flask import Blueprint, request, jsonify, session
+from flask import Blueprint, request, jsonify
 from db import get_db
 from utils import fetchall_dict
+from routes.auth import current_user_id
 
 posts_bp = Blueprint('posts', __name__, url_prefix='/api')
 
@@ -40,7 +41,7 @@ def get_posts():
 
 @posts_bp.route('/posts', methods=['POST'])
 def create_post():
-    author_id = session.get('user_id')
+    author_id = current_user_id()
     if not author_id:
         return jsonify({'message': 'Unauthorized. Please log in.'}), 401
 

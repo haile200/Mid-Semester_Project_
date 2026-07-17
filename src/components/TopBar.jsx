@@ -50,11 +50,16 @@ export default function TopBar({ currentUser, onLogout }) {
                     {currentUser ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', ml: 1 }}>
                             {/* Display email instead of name to match your picture */}
-                            <Typography sx={{ color: '#fff', fontSize: '14px', lineHeight: 1.2 }}>
+                            <Typography
+                                data-cy="profile-link"
+                                onClick={() => navigate('/profile')}
+                                sx={{ color: '#fff', fontSize: '14px', lineHeight: 1.2, cursor: 'pointer' }}
+                            >
                                 {currentUser.email}
                             </Typography>
                             <Button 
                                 color="inherit" 
+                                data-cy="logout-button"
                                 onClick={onLogout} 
                                 sx={{ 
                                     color: '#ffd700', 
@@ -70,7 +75,7 @@ export default function TopBar({ currentUser, onLogout }) {
                         </Box>
                     ) : (
                         /* Removed Signup to match the layout in the image */
-                        <Button color="inherit" onClick={() => navigate('/login')} sx={{ textTransform: 'none' }}>Login</Button>
+                        <Button color="inherit" data-cy="topbar-login" onClick={() => navigate('/login')} sx={{ textTransform: 'none' }}>Login</Button>
                     )}
                 </Box>
             </Toolbar>

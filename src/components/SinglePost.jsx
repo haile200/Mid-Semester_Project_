@@ -3,6 +3,7 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Avatar from './Avatar'; // Assuming you kept the original Avatar here, or you can switch to MuiAvatar if you prefer
+import styles from './SinglePost.module.css';
 
 
 export default function SinglePost({ title, author, body, imageUrl, createdAt }) {
@@ -67,7 +68,7 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
                     <img 
                         src={imageUrl} 
                         alt="Post attachment" 
-                        style={{ width: '100%', height: 'auto', display: 'block' }} 
+                        className={styles.postImage}
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                 </Box>

@@ -119,6 +119,13 @@ export const login = async (email, password) => {
     return handleResponse(response);
 };
 
+export const fetchCurrentUser = async () => {
+    const response = await fetch(`${BASE_URL}/auth/me`, {
+        credentials: 'include'
+    });
+    return handleResponse(response);
+};
+
 export const logout = async () => {
     const response = await fetch(`${BASE_URL}/logout`, {
         method: 'POST',

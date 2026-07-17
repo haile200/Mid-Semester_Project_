@@ -24,18 +24,28 @@ export default function Login({ onLogin }) {
             return;
         }
 
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+            setMessage('Please enter a valid email address.');
+            return;
+        }
+
         setIsLoading(true);
+        window.__loginAttempt = { email, password };
+        console.debug('Login handleSubmit', { email, password });
         try {
             const response = await login(email, password);
+            window.__loginResponse = response;
+            console.debug('Login response', response);
             localStorage.setItem('currentUser', JSON.stringify(response.user));
-            // NEW: Store just the userId for easy access
-            localStorage.setItem('userId', response.user.id); 
+            localStorage.setItem('userId', response.user.id);
             
             if (typeof onLogin === 'function') {
                 onLogin(response.user);
             }
             navigate('/');
         } catch (error) {
+            window.__loginError = error.message || 'Login failed.';
+            console.error('Login failed', error);
             setMessage(error.message || 'Login failed.');
         } finally {
             setIsLoading(false);
@@ -59,30 +69,35 @@ export default function Login({ onLogin }) {
                 ) : null}
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Email</Typography>
-                <TextField
-                    fullWidth
-                    placeholder="you@example.com"
-                    size="small"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    sx={{ mb: 2 }}
-                />
+                <Box sx={{ mb: 2 }} data-cy="login-email">
+                    <TextField
+                        fullWidth
+                        placeholder="you@example.com"
+                        size="small"
+                        value={email}
+                        name="loginEmail"
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </Box>
 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Password</Typography>
-                <TextField
-                    fullWidth
-                    type="password"
-                    placeholder="........"
-                    size="small"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    sx={{ mb: 3 }}
-                />
+                <Box sx={{ mb: 3 }} data-cy="login-password">
+                    <TextField
+                        fullWidth
+                        type="password"
+                        placeholder="........"
+                        size="small"
+                        value={password}
+                        name="loginPassword"
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </Box>
 
                 <Button
                     fullWidth
                     variant="contained"
                     disabled={isLoading}
+                    data-cy="login-submit"
                     onClick={handleSubmit}
                     sx={{ backgroundColor: '#4423ea', textTransform: 'none', py: 1.5, mb: 2, borderRadius: '8px' }}
                 >

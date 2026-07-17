@@ -6,9 +6,11 @@ import Feed from './components/Feed';
 import Users from './components/Users';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import Profile from './components/Profile';
 import NewPost from './components/NewPost';
 // Import the About component
 import About from './components/About';
+import { logout } from './api';
 
 function RequireAuth({ user, children }) {
     const navigate = useNavigate();
@@ -37,9 +39,15 @@ function App() {
         setCurrentUser(user);
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('currentUser');
-        setCurrentUser(null);
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Logout failed:', error);
+        } finally {
+            localStorage.removeItem('currentUser');
+            setCurrentUser(null);
+        }
     };
 
     return (
@@ -53,6 +61,7 @@ function App() {
                 <Route path="/user-posts/:userId" element={<Feed />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/profile" element={<Profile />} />
                 
                 {/* Removed RequireAuth wrapper to allow direct access for testing */}
                 <Route path="/new-post" element={<NewPost currentUser={currentUser} />} />

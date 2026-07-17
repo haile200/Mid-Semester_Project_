@@ -34,6 +34,14 @@ CREATE TABLE IF NOT EXISTS followers (
     FOREIGN KEY (following_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- Create sessions table for server-side session tokens
+CREATE TABLE IF NOT EXISTS sessions (
+    token VARCHAR(64) PRIMARY KEY,
+    user_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Insert default admin user with a placeholder hashed password
 INSERT IGNORE INTO users (name, email, password, bio) 
 VALUES ('Admin User', 'admin@example.com', '$2b$12$examplehashedpasswordstring', 'I am the admin');
