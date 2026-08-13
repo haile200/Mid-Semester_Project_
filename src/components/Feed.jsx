@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import Grid from '@mui/material/Grid';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
@@ -17,6 +16,7 @@ import TextField from '@mui/material/TextField';
 import { Avatar as MuiAvatar } from '@mui/material';
 import SinglePost from './SinglePost';
 import { fetchPosts, fetchUserDetails, toggleFollow, fetchFollowingFeed, fetchFeed, updateProfile } from '../api';
+import { climb } from '../theme';
 
 export default function Feed() {
     const { userId } = useParams();
@@ -179,19 +179,21 @@ export default function Feed() {
     }, [userId, feedType, currentUserId]);
 
     return (
-        <Box sx={{ backgroundColor: '#fdfdfd', minHeight: '100vh', py: 4 }}>
+        <Box sx={{ backgroundColor: climb.page, minHeight: '100vh', py: { xs: 2, sm: 4 } }}>
             {userId && (
                 <Box sx={{ maxWidth: '1000px', margin: '0 auto', px: 2, mb: 4 }}>
                     {userDetails ? (
                         <Card sx={{
-                            backgroundColor: 'white', borderRadius: '12px',
-                            boxShadow: '0 4px 12px rgba(123, 97, 255, 0.1)', p: 3,
-                            display: 'flex', alignItems: 'center', gap: 3
+                            backgroundColor: 'white', borderRadius: '14px',
+                            border: '1px solid #EDEBE4',
+                            boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)', p: 3,
+                            display: 'flex', alignItems: 'center', gap: 3,
+                            flexWrap: 'wrap'
                         }}>
                             <MuiAvatar 
                                 src={userDetails.profile_picture || ''} 
                                 alt={userDetails.name}
-                                sx={{ width: 80, height: 80, fontSize: '32px' }}
+                                sx={{ width: 80, height: 80, fontSize: '32px', border: `3px solid ${climb.coral}`, backgroundColor: climb.coralTint, color: climb.onCoralTint }}
                             >
                                 {userDetails.name ? userDetails.name[0].toUpperCase() : 'U'}
                             </MuiAvatar>
@@ -204,7 +206,7 @@ export default function Feed() {
                                         {userDetails.bio}
                                     </Typography>
                                 )}
-                                <Typography sx={{ color: '#7b61ff', fontWeight: '500' }}>
+                                <Typography sx={{ color: climb.coralDark, fontWeight: '500', fontSize: '14px' }}>
                                     {userDetails.postCount} {userDetails.postCount === 1 ? 'Post' : 'Posts'} 
                                     {' • '} 
                                     {userDetails.followersCount || 0} Followers 
@@ -218,14 +220,18 @@ export default function Feed() {
                                     <Button 
                                         variant={userDetails.is_following ? "outlined" : "contained"} 
                                         onClick={handleFollowToggle}
-                                        sx={{ 
-                                            borderRadius: '20px', 
+                                        sx={{
+                                            borderRadius: '999px',
                                             textTransform: 'none',
-                                            backgroundColor: userDetails.is_following ? 'transparent' : '#7b61ff',
-                                            color: userDetails.is_following ? '#7b61ff' : 'white',
-                                            borderColor: '#7b61ff',
+                                            fontWeight: 'bold',
+                                            backgroundColor: userDetails.is_following ? 'transparent' : climb.coral,
+                                            color: userDetails.is_following ? climb.stone : climb.onCoral,
+                                            borderColor: userDetails.is_following ? '#D3D1C7' : climb.coral,
+                                            boxShadow: 'none',
                                             '&:hover': {
-                                                backgroundColor: userDetails.is_following ? 'rgba(123, 97, 255, 0.04)' : '#6a4fc4'
+                                                backgroundColor: userDetails.is_following ? climb.chalk : climb.coralHover,
+                                                borderColor: userDetails.is_following ? '#D3D1C7' : climb.coral,
+                                                boxShadow: 'none'
                                             }
                                         }}
                                     >
@@ -279,7 +285,7 @@ export default function Feed() {
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setIsEditDialogOpen(false)} color="inherit">Cancel</Button>
-                    <Button onClick={handleSaveProfile} disabled={isSavingProfile} sx={{ color: '#7b61ff', fontWeight: 'bold' }}>
+                    <Button onClick={handleSaveProfile} disabled={isSavingProfile} sx={{ color: climb.coralDark, fontWeight: 'bold' }}>
                         {isSavingProfile ? 'Saving...' : 'Save Changes'}
                     </Button>
                 </DialogActions>
@@ -287,9 +293,21 @@ export default function Feed() {
 
             <Box sx={{ maxWidth: '1000px', margin: '0 auto', px: 2 }}>
                 {!userId ? (
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-                        <Tabs value={feedType} onChange={handleTabChange} textColor="secondary" indicatorColor="secondary">
-                            <Tab label="Global Feed" />
+                    <Box sx={{ maxWidth: '640px', margin: '0 auto', mb: 2 }}>
+                        <Tabs
+                            value={feedType}
+                            onChange={handleTabChange}
+                            sx={{
+                                minHeight: 40,
+                                '& .MuiTabs-indicator': { backgroundColor: climb.coralDark, height: 3, borderRadius: '3px' },
+                                '& .MuiTab-root': {
+                                    textTransform: 'none', fontWeight: 'bold', fontSize: '14px',
+                                    minHeight: 40, color: climb.stone,
+                                    '&.Mui-selected': { color: climb.rock }
+                                }
+                            }}
+                        >
+                            <Tab label="Feed" />
                             <Tab label="Following" />
                         </Tabs>
                     </Box>
@@ -301,23 +319,24 @@ export default function Feed() {
 
                 {/* Show login prompt ONLY on the Following tab if not logged in */}
                 {!userId && feedType === 1 && !currentUserId ? (
-                    <Box sx={{ 
-                        textAlign: 'center', py: 8, mt: 4, 
-                        backgroundColor: 'white', borderRadius: '12px', 
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.05)' 
+                    <Box sx={{
+                        textAlign: 'center', py: 8, mt: 4, maxWidth: '640px', mx: 'auto',
+                        backgroundColor: 'white', borderRadius: '14px',
+                        border: '1px solid #EDEBE4',
+                        boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)'
                     }}>
-                        <Typography variant="h5" sx={{ color: '#333', mb: 2, fontWeight: 'bold' }}>
-                            Login Required
+                        <Typography variant="h5" sx={{ color: climb.rock, mb: 2, fontWeight: 'bold' }}>
+                            Rope up first
                         </Typography>
-                        <Typography sx={{ color: '#666', mb: 4 }}>
-                            Please log in or sign up to see posts from people you follow.
+                        <Typography sx={{ color: climb.stone, mb: 4, px: 2 }}>
+                            Log in to follow climbers and see their sends and projects here.
                         </Typography>
-                        <Button 
-                            variant="contained" 
-                            onClick={() => navigate('/login')} 
-                            sx={{ backgroundColor: '#7b61ff', textTransform: 'none', px: 4, py: 1, borderRadius: '8px', fontWeight: 'bold' }}
+                        <Button
+                            variant="contained"
+                            onClick={() => navigate('/login')}
+                            sx={{ backgroundColor: climb.rock, textTransform: 'none', px: 4, py: 1, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.rockHover, boxShadow: 'none' } }}
                         >
-                            Go to Login
+                            Go to login
                         </Button>
                     </Box>
                 ) : (
@@ -345,20 +364,20 @@ export default function Feed() {
                                 ))}
                             </Box>
                         ) : (
-                            <Grid container spacing={3}>
+                            /* Single centered column like a phone feed - climbers scroll one-handed */
+                            <Box sx={{ maxWidth: '640px', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
                                 {posts.map((post, index) => (
-                                    <Grid item xs={12} sm={6} md={4} key={`${post.id}-${index}`}>
-                                        <SinglePost
-                                            title={post.title}
-                                            author={post.author_name || `User ${post.userId}`}
-                                            body={post.body}
-                                            imageUrl={post.image_url}
-                                            createdAt={post.created_at}
-                                            authorProfilePicture={post.author_profile_picture}
-                                        />
-                                    </Grid>
+                                    <SinglePost
+                                        key={`${post.id}-${index}`}
+                                        title={post.title}
+                                        author={post.author_name || `User ${post.userId}`}
+                                        body={post.body}
+                                        imageUrl={post.image_url}
+                                        createdAt={post.created_at}
+                                        authorProfilePicture={post.author_profile_picture}
+                                    />
                                 ))}
-                            </Grid>
+                            </Box>
                         )}
 
                         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, height: '40px' }}>

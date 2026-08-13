@@ -4,78 +4,99 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
+import TerrainIcon from '@mui/icons-material/Terrain';
 import { useNavigate } from 'react-router-dom';
+import { climb } from '../theme';
 
 export default function TopBar({ currentUser, onLogout }) {
     const navigate = useNavigate();
 
-    return (
-        <AppBar position="static" sx={{ backgroundColor: '#3517c9', boxShadow: 'none' }}>
-            <Toolbar>
-                <Typography 
-                    variant="h6" 
-                    component="div" 
-                    onClick={() => navigate('/')}
-                    sx={{ fontWeight: 'bold', cursor: 'pointer', mr: 3 }}
-                >
-                    MyApp
-                </Typography>
+    const navButtonSx = {
+        textTransform: 'none',
+        color: climb.chalk,
+        minWidth: 'auto',
+        px: { xs: 1, sm: 1.5 },
+        '&:hover': { backgroundColor: climb.rockHover },
+    };
 
-                {/* Yellow New Post button */}
-                <Button 
+    return (
+        // Sticky dark-rock bar: stays reachable while scrolling a long feed one-handed at the gym
+        <AppBar position="sticky" sx={{ backgroundColor: climb.rock, boxShadow: '0 1px 0 rgba(0,0,0,0.25)' }}>
+            <Toolbar sx={{ gap: 1, minHeight: { xs: 56 }, px: { xs: 1.5, sm: 3 } }}>
+                <Box
+                    onClick={() => navigate('/')}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 0.75, cursor: 'pointer', mr: { xs: 0.5, sm: 2 } }}
+                >
+                    <TerrainIcon sx={{ color: climb.coral, fontSize: 26 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '18px', letterSpacing: '-0.02em' }}>
+                        My Beta
+                    </Typography>
+                </Box>
+
+                {/* Coral pill = the one energetic accent, reserved for the main action */}
+                <Button
                     onClick={() => navigate('/new-post')}
-                    sx={{ 
-                        backgroundColor: '#ffb300', 
-                        color: 'black', 
-                        textTransform: 'none', 
+                    sx={{
+                        backgroundColor: climb.coral,
+                        color: climb.onCoral,
+                        textTransform: 'none',
                         fontWeight: 'bold',
-                        borderRadius: '20px',
+                        borderRadius: '999px',
                         px: 2,
-                        '&:hover': { backgroundColor: '#ffa000' }
+                        fontSize: '13px',
+                        whiteSpace: 'nowrap',
+                        '&:hover': { backgroundColor: climb.coralHover },
                     }}
                 >
                     + New Post
                 </Button>
 
-                {/* Spacer to push the rest of the buttons to the right */}
                 <Box sx={{ flexGrow: 1 }} />
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Button color="inherit" onClick={() => navigate('/')} sx={{ textTransform: 'none' }}>Home</Button>
-                    <Button color="inherit" onClick={() => navigate('/users')} sx={{ textTransform: 'none' }}>Users</Button>
-                    
-                    {/* Added About link exactly where you wanted it */}
-                    <Button color="inherit" onClick={() => navigate('/about')} sx={{ textTransform: 'none' }}>About</Button>
-                    
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.5 } }}>
+                    <Button sx={navButtonSx} onClick={() => navigate('/')}>Home</Button>
+                    <Button sx={navButtonSx} onClick={() => navigate('/users')}>Community</Button>
+                    <Button sx={{ ...navButtonSx, display: { xs: 'none', sm: 'inline-flex' } }} onClick={() => navigate('/about')}>About</Button>
+
                     {currentUser ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', ml: 1 }}>
-                            {/* Display email instead of name to match your picture */}
                             <Typography
                                 data-cy="profile-link"
                                 onClick={() => navigate('/profile')}
-                                sx={{ color: '#fff', fontSize: '14px', lineHeight: 1.2, cursor: 'pointer' }}
+                                sx={{
+                                    color: climb.chalk,
+                                    fontSize: '13px',
+                                    lineHeight: 1.2,
+                                    cursor: 'pointer',
+                                    maxWidth: { xs: '110px', sm: '220px' },
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    '&:hover': { color: climb.coral },
+                                }}
                             >
                                 {currentUser.email}
                             </Typography>
-                            <Button 
-                                color="inherit" 
+                            <Button
+                                color="inherit"
                                 data-cy="logout-button"
-                                onClick={onLogout} 
-                                sx={{ 
-                                    color: '#ffd700', 
-                                    textTransform: 'none', 
-                                    fontWeight: 'bold', 
-                                    padding: 0, 
+                                onClick={onLogout}
+                                sx={{
+                                    color: climb.coral,
+                                    textTransform: 'none',
+                                    fontWeight: 'bold',
+                                    padding: 0,
                                     minWidth: 'auto',
-                                    fontSize: '14px' 
+                                    fontSize: '13px',
                                 }}
                             >
                                 Logout
                             </Button>
                         </Box>
                     ) : (
-                        /* Removed Signup to match the layout in the image */
-                        <Button color="inherit" data-cy="topbar-login" onClick={() => navigate('/login')} sx={{ textTransform: 'none' }}>Login</Button>
+                        <Button color="inherit" data-cy="topbar-login" onClick={() => navigate('/login')} sx={navButtonSx}>
+                            Login
+                        </Button>
                     )}
                 </Box>
             </Toolbar>

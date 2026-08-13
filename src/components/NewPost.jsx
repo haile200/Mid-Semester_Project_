@@ -6,9 +6,14 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 // FIXED IMPORTS: using react-quill-new instead of react-quill
-import ReactQuill from 'react-quill-new'; 
-import 'react-quill-new/dist/quill.snow.css'; 
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
+import Chip from '@mui/material/Chip';
 import { createPost } from '../api';
+import { climb } from '../theme';
+
+const CLIMB_STYLES = ['Bouldering', 'Lead', 'Top rope'];
+const CLIMB_GRADES = ['V2', 'V3', 'V4', 'V5', 'V6', '6b+', '6c+', '7a'];
 
 export default function NewPost({ currentUser }) {
     const navigate = useNavigate();
@@ -17,6 +22,9 @@ export default function NewPost({ currentUser }) {
     const [imageUrl, setImageUrl] = useState(''); 
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    // Visual-only climbing metadata until the backend stores grades and styles
+    const [climbStyle, setClimbStyle] = useState('Bouldering');
+    const [climbGrade, setClimbGrade] = useState('V4');
 
     const storedUser = currentUser || JSON.parse(localStorage.getItem('currentUser') || 'null');
     const activeUser = storedUser;
@@ -57,10 +65,10 @@ export default function NewPost({ currentUser }) {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', py: 4 }}>
-            <Card sx={{ padding: 4, width: '700px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                <Typography variant="h5" align="center" fontWeight="bold" gutterBottom sx={{ mb: 4 }}>
-                    Create New Post
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', py: 4, backgroundColor: climb.page, px: 2 }}>
+            <Card sx={{ padding: { xs: 2.5, sm: 4 }, width: '700px', maxWidth: '100%', borderRadius: '16px', border: '1px solid #EDEBE4', boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)' }}>
+                <Typography variant="h5" align="center" fontWeight="bold" gutterBottom sx={{ mb: 4, color: climb.rock }}>
+                    New Post
                 </Typography>
 
                 {activeUser ? (
@@ -82,13 +90,54 @@ export default function NewPost({ currentUser }) {
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Title</Typography>
                 <TextField
                     fullWidth
-                    placeholder="Enter post title..."
+                    placeholder="What did you climb?"
                     size="small"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     sx={{ mb: 3 }}
                     disabled={!activeUser || isLoading}
                 />
+
+                {/* Style and grade chips - gym-tag style pickers, visual metadata for now */}
+                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Style</Typography>
+                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                    {CLIMB_STYLES.map((style) => (
+                        <Chip
+                            key={style}
+                            label={style}
+                            onClick={() => setClimbStyle(style)}
+                            sx={{
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                borderRadius: '999px',
+                                backgroundColor: climbStyle === style ? climb.coralTint : 'transparent',
+                                color: climbStyle === style ? climb.onCoralTint : climb.stone,
+                                border: climbStyle === style ? `1px solid ${climb.coral}` : '1px solid #D3D1C7',
+                                '&:hover': { backgroundColor: climb.coralTint },
+                            }}
+                        />
+                    ))}
+                </Box>
+
+                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Grade</Typography>
+                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                    {CLIMB_GRADES.map((grade) => (
+                        <Chip
+                            key={grade}
+                            label={grade}
+                            onClick={() => setClimbGrade(grade)}
+                            sx={{
+                                fontWeight: 'bold',
+                                fontSize: '12px',
+                                borderRadius: '999px',
+                                backgroundColor: climbGrade === grade ? climb.rock : 'transparent',
+                                color: climbGrade === grade ? climb.chalk : climb.stone,
+                                border: climbGrade === grade ? `1px solid ${climb.rock}` : '1px solid #D3D1C7',
+                                '&:hover': { backgroundColor: climbGrade === grade ? climb.rockHover : climb.chalk },
+                            }}
+                        />
+                    ))}
+                </Box>
                 
                 <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Image URL (Optional)</Typography>
                 <TextField
@@ -111,7 +160,7 @@ export default function NewPost({ currentUser }) {
                         value={body} 
                         onChange={setBody} 
                         modules={modules}
-                        placeholder="Write your post content here..."
+                        placeholder="Describe the problem, the moves, your beta..."
                         readOnly={!activeUser || isLoading}
                     />
                 </Box>
@@ -121,9 +170,9 @@ export default function NewPost({ currentUser }) {
                     variant="contained"
                     disabled={!activeUser || isLoading}
                     onClick={handleSubmit}
-                    sx={{ backgroundColor: '#5c6bc0', textTransform: 'none', py: 1.5, borderRadius: '8px', fontWeight: 'bold' }}
+                    sx={{ backgroundColor: climb.coral, color: climb.onCoral, textTransform: 'none', py: 1.5, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.coralHover, boxShadow: 'none' } }}
                 >
-                    {isLoading ? 'Publishing...' : 'Publish'}
+                    {isLoading ? 'Posting...' : 'Post climb'}
                 </Button>
 
                 {!activeUser && (

@@ -3,29 +3,34 @@ import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
+import { climb } from '../theme';
 
 export default function Search({ onSearch }) {
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4, mt: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
             <TextField
-                placeholder="Search by name or email..."
+                fullWidth
+                size="small"
+                placeholder="Search climbers..."
                 variant="outlined"
                 onChange={(e) => onSearch(e.target.value)}
                 sx={{
-                    width: '60%',
                     backgroundColor: 'white',
-                    borderRadius: '30px',
-                    // Targeting the inner input to round the borders completely
+                    borderRadius: '999px',
                     '& .MuiOutlinedInput-root': {
-                        borderRadius: '30px',
-                    }
+                        borderRadius: '999px',
+                        '& fieldset': { borderColor: '#EDEBE4' },
+                        '&:hover fieldset': { borderColor: climb.coral },
+                    },
                 }}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            <SearchIcon />
-                        </InputAdornment>
-                    ),
+                slotProps={{
+                    input: {
+                        startAdornment: (
+                            <InputAdornment position="start">
+                                <SearchIcon sx={{ color: climb.stone, fontSize: 20 }} />
+                            </InputAdornment>
+                        ),
+                    },
                 }}
             />
         </Box>

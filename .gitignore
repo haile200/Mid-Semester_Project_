@@ -32,4 +32,5 @@ __pycache__
 .pytest_cache
 cypress/screenshots
 cypress/videos
-
+CLAUDE.md
+*markdown_lectures_FullStack_Course_Materials.md

@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Avatar from './Avatar'; // Assuming you kept the original Avatar here, or you can switch to MuiAvatar if you prefer
+import Chip from '@mui/material/Chip';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
+import CheckIcon from '@mui/icons-material/Check';
+import Avatar from './Avatar';
 import styles from './SinglePost.module.css';
-
+import { climb, climbingBadges } from '../theme';
 
 export default function SinglePost({ title, author, body, imageUrl, createdAt }) {
-    // A helper function to make relative time look nice (e.g., "2 hours ago")
+    // "Share beta" is climber-speak for route advice - local UI only for now
+    const [isBetaOpen, setIsBetaOpen] = useState(false);
+    const [betaText, setBetaText] = useState('');
+    const [betaSent, setBetaSent] = useState(false);
+
+    const badges = climbingBadges(`${title}|${author}`);
+
     const getTimeAgo = (dateString) => {
         if (!dateString) return '';
-        
-        // Ensure the date is parsed correctly.
-        // Some backends might send a date that needs to be appended with 'Z' to indicate UTC.
-        // If your database stores times in UTC but doesn't send the 'Z', add it.
         const postDate = new Date(dateString.endsWith('GMT') ? dateString : dateString + 'Z');
         const now = new Date();
         const seconds = Math.floor((now - postDate) / 1000);
@@ -31,60 +38,132 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
         return `${years} year${years !== 1 ? 's' : ''} ago`;
     };
 
+    const handleSendBeta = () => {
+        if (!betaText.trim()) return;
+        setBetaText('');
+        setIsBetaOpen(false);
+        setBetaSent(true);
+    };
+
+    const chipSx = { height: 22, fontSize: '11px', fontWeight: 'bold', borderRadius: '999px' };
+
     return (
-        <Card sx={{ 
-            p: 3, 
-            borderRadius: '12px', 
-            boxShadow: '0 4px 12px rgba(123, 97, 255, 0.1)',
+        // Chalk-white card with a soft stone shadow - modern and calm like a gym wall
+        <Card sx={{
+            p: { xs: 2, sm: 3 },
+            borderRadius: '14px',
+            border: '1px solid #EDEBE4',
+            boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)',
             mb: 2,
             transition: 'box-shadow 0.2s ease',
-            '&:hover': {
-                boxShadow: '0 6px 16px rgba(123, 97, 255, 0.2)'
-            }
+            '&:hover': { boxShadow: '0 6px 16px rgba(44, 44, 42, 0.12)' },
         }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                {/* Fallback to first letter if profile picture isn't passed here */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
                 <Avatar name={author || 'User'} size={40} />
-                <Box sx={{ ml: 2, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle1" fontWeight="bold">
+                <Box sx={{ ml: 1.5, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ lineHeight: 1.3 }}>
                         {author || 'Unknown Author'}
                     </Typography>
                     {createdAt && (
-                        <Typography variant="caption" color="text.secondary">
+                        <Typography variant="caption" sx={{ color: climb.stone }}>
                             {getTimeAgo(createdAt)}
                         </Typography>
                     )}
                 </Box>
             </Box>
 
-            {/* Post Title */}
-            <Typography variant="h6" fontWeight="bold" gutterBottom>
+            {/* Discipline, grade, and status badges - the vocabulary climbers scan for first */}
+            <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5, flexWrap: 'wrap' }}>
+                <Chip label={badges.discipline.label} sx={{ ...chipSx, backgroundColor: badges.discipline.bg, color: badges.discipline.fg }} />
+                <Chip label={badges.grade} sx={{ ...chipSx, backgroundColor: climb.chalk, color: climb.rock }} />
+                {badges.sent ? (
+                    <Chip icon={<CheckIcon sx={{ fontSize: 13, color: `${climb.onSentTint} !important` }} />} label="Sent"
+                        sx={{ ...chipSx, backgroundColor: climb.sentTint, color: climb.onSentTint }} />
+                ) : (
+                    <Chip label="Project" sx={{ ...chipSx, backgroundColor: climb.projectTint, color: climb.onProjectTint }} />
+                )}
+            </Box>
+
+            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: '17px' }}>
                 {title}
             </Typography>
 
-            {/* Post Image (if any) */}
             {imageUrl && (
-                <Box sx={{ width: '100%', maxHeight: '400px', overflow: 'hidden', borderRadius: '8px', mb: 2 }}>
-                    <img 
-                        src={imageUrl} 
-                        alt="Post attachment" 
+                <Box sx={{ width: '100%', maxHeight: '400px', overflow: 'hidden', borderRadius: '10px', mb: 2 }}>
+                    <img
+                        src={imageUrl}
+                        alt="Post attachment"
                         className={styles.postImage}
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                 </Box>
             )}
 
-            {/* Post Body - Rendered as HTML to support WYSIWYG formatting */}
-            <Box 
-                sx={{ 
-                    color: '#444', 
-                    fontSize: '15px', 
+            <Box
+                sx={{
+                    color: '#444441',
+                    fontSize: '14px',
                     lineHeight: 1.6,
-                    '& p': { margin: '0 0 10px 0' }, // basic styling for paragraphs from the editor
-                    '& a': { color: '#7b61ff', textDecoration: 'none' } // basic styling for links
+                    '& p': { margin: '0 0 10px 0' },
+                    '& a': { color: climb.coralDark, textDecoration: 'none' },
                 }}
-                dangerouslySetInnerHTML={{ __html: body }} 
+                dangerouslySetInnerHTML={{ __html: body }}
             />
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5, pt: 1.5, borderTop: '1px solid #F1EFE8' }}>
+                <Box sx={{ flexGrow: 1 }} />
+                {betaSent ? (
+                    <Typography sx={{ fontSize: '12px', fontWeight: 'bold', color: climb.onSentTint }}>
+                        Beta shared with {author ? author.split(' ')[0] : 'the author'}
+                    </Typography>
+                ) : (
+                    <Button
+                        startIcon={<LightbulbOutlinedIcon sx={{ fontSize: 15 }} />}
+                        onClick={() => setIsBetaOpen((open) => !open)}
+                        sx={{
+                            backgroundColor: climb.coral,
+                            color: climb.onCoral,
+                            textTransform: 'none',
+                            fontWeight: 'bold',
+                            borderRadius: '999px',
+                            px: 1.75,
+                            py: 0.5,
+                            fontSize: '12px',
+                            '&:hover': { backgroundColor: climb.coralHover },
+                        }}
+                    >
+                        Share beta
+                    </Button>
+                )}
+            </Box>
+
+            {isBetaOpen && !betaSent && (
+                <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Share your beta - heel hooks, rests, sequences..."
+                        value={betaText}
+                        onChange={(e) => setBetaText(e.target.value)}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', fontSize: '13px' } }}
+                    />
+                    <Button
+                        onClick={handleSendBeta}
+                        sx={{
+                            backgroundColor: climb.rock,
+                            color: climb.chalk,
+                            textTransform: 'none',
+                            fontWeight: 'bold',
+                            borderRadius: '999px',
+                            px: 2,
+                            fontSize: '12px',
+                            '&:hover': { backgroundColor: climb.rockHover },
+                        }}
+                    >
+                        Send
+                    </Button>
+                </Box>
+            )}
         </Card>
     );
 }

@@ -5,8 +5,10 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import TerrainIcon from '@mui/icons-material/Terrain';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api';
+import { climb } from '../theme';
 
 export default function Login({ onLogin }) {
     const navigate = useNavigate();
@@ -53,13 +55,19 @@ export default function Login({ onLogin }) {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-            <Card sx={{ padding: 4, width: '400px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', backgroundColor: climb.page, px: 2 }}>
+            <Card sx={{ padding: 4, width: '400px', maxWidth: '100%', borderRadius: '16px', border: '1px solid #EDEBE4', boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)' }}>
+                {/* Chalk circle with the mountain mark - the brand moment of the page */}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+                    <Box sx={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: climb.coralTint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <TerrainIcon sx={{ color: climb.coralDark, fontSize: 30 }} />
+                    </Box>
+                </Box>
                 <Typography variant="h5" align="center" fontWeight="bold" gutterBottom>
-                    Welcome Back
+                    Welcome back, climber
                 </Typography>
-                <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-                    Sign in to your account
+                <Typography variant="body2" align="center" sx={{ mb: 3, color: climb.stone }}>
+                    Log in to find your next project
                 </Typography>
 
                 {message ? (
@@ -99,7 +107,7 @@ export default function Login({ onLogin }) {
                     disabled={isLoading}
                     data-cy="login-submit"
                     onClick={handleSubmit}
-                    sx={{ backgroundColor: '#4423ea', textTransform: 'none', py: 1.5, mb: 2, borderRadius: '8px' }}
+                    sx={{ backgroundColor: climb.rock, textTransform: 'none', py: 1.5, mb: 2, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.rockHover, boxShadow: 'none' } }}
                 >
                     {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
@@ -110,9 +118,9 @@ export default function Login({ onLogin }) {
                     fullWidth
                     variant="outlined"
                     onClick={() => navigate('/signup')}
-                    sx={{ textTransform: 'none', py: 1.5, borderRadius: '8px', color: '#7b61ff', borderColor: '#7b61ff' }}
+                    sx={{ textTransform: 'none', py: 1.5, borderRadius: '999px', color: climb.coralDark, borderColor: climb.coral, fontWeight: 'bold', '&:hover': { borderColor: climb.coralDark, backgroundColor: climb.coralTint } }}
                 >
-                    Sign Up
+                    Join the crew
                 </Button>
             </Card>
         </Box>

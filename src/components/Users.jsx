@@ -6,6 +6,7 @@ import Alert from '@mui/material/Alert';
 import Search from './Search';
 import User from './User';
 import { fetchUsers } from '../api';
+import { climb } from '../theme';
 
 export default function Users() {
     const [users, setUsers] = useState([]);
@@ -79,28 +80,21 @@ export default function Users() {
     }, [searchTerm]);
 
     return (
-        <Box sx={{ minHeight: '100vh', backgroundColor: '#fdfdfd', py: 4 }}>
-            <Box sx={{ maxWidth: '900px', margin: '0 auto', px: 2 }}>
-                <Typography variant="h4" sx={{ mb: 2 }}>
-                    Users
+        <Box sx={{ minHeight: '100vh', backgroundColor: climb.page, py: { xs: 2, sm: 4 } }}>
+            <Box sx={{ maxWidth: '640px', margin: '0 auto', px: 2 }}>
+                <Typography variant="h5" sx={{ mb: 0.5, fontWeight: 'bold', color: climb.rock }}>
+                    Community
+                </Typography>
+                <Typography sx={{ mb: 2, color: climb.stone, fontSize: '14px' }}>
+                    Find climbers to follow and swap beta with
                 </Typography>
                 <Search onSearch={setSearchTerm} />
 
                 {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-                <Box sx={{ 
-                    display: 'flex', justifyContent: 'space-between', padding: '16px 24px',
-                    backgroundColor: '#f4f5f7', borderRadius: '8px', marginBottom: '16px'
-                }}>
-                    <Box sx={{ width: '10%' }} />
-                    <Typography sx={{ width: '25%', fontWeight: 'bold', fontSize: '14px' }}>User</Typography>
-                    <Typography sx={{ width: '20%', textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>Posts</Typography>
-                    <Box sx={{ width: '45%' }} />
-                </Box>
-
                 {users.length === 0 && !isLoading && !error && (
-                    <Typography sx={{ textAlign: 'center', py: 4, color: '#999' }}>
-                        No users found. Try adjusting your search.
+                    <Typography sx={{ textAlign: 'center', py: 4, color: climb.stone }}>
+                        No climbers found. Try another name.
                     </Typography>
                 )}
 
@@ -118,10 +112,10 @@ export default function Users() {
                 </Box>
 
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, height: '40px' }}>
-                    {isLoading && <CircularProgress sx={{ color: '#7b61ff' }} size={30} />}
+                    {isLoading && <CircularProgress sx={{ color: climb.coralDark }} size={30} />}
                     {!hasMore && users.length > 0 && (
-                        <Typography sx={{ color: '#999', fontStyle: 'italic' }}>
-                            No more users to load
+                        <Typography sx={{ color: climb.stone, fontStyle: 'italic' }}>
+                            No more climbers to load
                         </Typography>
                     )}
                 </Box>

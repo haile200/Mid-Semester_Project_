@@ -4,56 +4,59 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { Avatar as MuiAvatar } from '@mui/material';
+import { climb } from '../theme';
 
 export default function User({ id, name, email, postCount, profile_picture }) {
     const navigate = useNavigate();
 
     return (
-        <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            padding: '16px 24px',
-            backgroundColor: 'white', 
-            borderRadius: '8px', 
-            marginBottom: '12px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-            border: '1px solid #f0f0f0'
+        // Compact card row: avatar, identity, climb count - thumb-sized tap targets for mobile
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+            padding: '12px 16px',
+            backgroundColor: 'white',
+            borderRadius: '14px',
+            marginBottom: '10px',
+            border: '1px solid #EDEBE4',
+            boxShadow: '0 2px 8px rgba(44, 44, 42, 0.04)',
         }}>
-            <Box sx={{ width: '10%', display: 'flex', justifyContent: 'center' }}>
-                <MuiAvatar 
-                    src={profile_picture || ''} 
-                    alt={name}
-                    sx={{ width: 40, height: 40 }}
-                >
-                    {name ? name[0].toUpperCase() : 'U'}
-                </MuiAvatar>
+            <MuiAvatar
+                src={profile_picture || ''}
+                alt={name}
+                sx={{ width: 42, height: 42, backgroundColor: climb.coralTint, color: climb.onCoralTint, fontWeight: 'bold' }}
+            >
+                {name ? name[0].toUpperCase() : 'U'}
+            </MuiAvatar>
+
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography fontWeight="bold" sx={{ fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {name}
+                </Typography>
+                <Typography sx={{ fontSize: '12px', color: climb.stone, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {postCount || 0} {postCount === 1 ? 'climb logged' : 'climbs logged'} · {email}
+                </Typography>
             </Box>
-            
-            <Box sx={{ width: '25%' }}>
-                <Typography fontWeight="bold">{name}</Typography>
-                <Typography variant="body2" color="text.secondary">{email}</Typography>
-            </Box>
-            
-            <Typography sx={{ width: '20%', textAlign: 'center' }}>
-                {postCount || 0}
-            </Typography>
-            
-            <Box sx={{ width: '45%', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button 
-                    variant="contained" 
-                    size="small"
-                    onClick={() => navigate(`/user-posts/${id}`)}
-                    sx={{ 
-                        backgroundColor: '#7b61ff', 
-                        textTransform: 'none',
-                        borderRadius: '20px',
-                        px: 3
-                    }}
-                >
-                    See Posts
-                </Button>
-            </Box>
+
+            <Button
+                size="small"
+                onClick={() => navigate(`/user-posts/${id}`)}
+                sx={{
+                    backgroundColor: climb.coral,
+                    color: climb.onCoral,
+                    textTransform: 'none',
+                    fontWeight: 'bold',
+                    borderRadius: '999px',
+                    px: 2,
+                    fontSize: '12px',
+                    whiteSpace: 'nowrap',
+                    flexShrink: 0,
+                    '&:hover': { backgroundColor: climb.coralHover },
+                }}
+            >
+                See sends
+            </Button>
         </Box>
     );
 }

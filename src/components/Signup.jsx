@@ -4,9 +4,11 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
+import TerrainIcon from '@mui/icons-material/Terrain';
 import { useNavigate } from 'react-router-dom';
 import { signup } from '../api';
 import styles from './Signup.module.css';
+import { climb } from '../theme';
 
 export default function Signup() {
     const navigate = useNavigate();
@@ -53,13 +55,18 @@ export default function Signup() {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-            <Card sx={{ padding: 4, width: '420px', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', backgroundColor: climb.page, px: 2 }}>
+            <Card sx={{ padding: 4, width: '420px', maxWidth: '100%', borderRadius: '16px', border: '1px solid #EDEBE4', boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
+                    <Box sx={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: climb.coralTint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <TerrainIcon sx={{ color: climb.coralDark, fontSize: 30 }} />
+                    </Box>
+                </Box>
                 <Typography variant="h5" align="center" fontWeight="bold" gutterBottom>
-                    Create Account
+                    Join the crew
                 </Typography>
-                <Typography variant="body2" align="center" color="text.secondary" sx={{ mb: 3 }}>
-                    Sign up for a new account
+                <Typography variant="body2" align="center" sx={{ mb: 3, color: climb.stone }}>
+                    Share your sends, projects, and beta
                 </Typography>
 
                 {message ? (
@@ -124,7 +131,7 @@ export default function Signup() {
                     disabled={isLoading}
                     data-cy="signup-submit"
                     onClick={handleSubmit}
-                    sx={{ backgroundColor: '#7b61ff', textTransform: 'none', py: 1.5, mb: 3, borderRadius: '8px' }}
+                    sx={{ backgroundColor: climb.rock, textTransform: 'none', py: 1.5, mb: 3, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.rockHover, boxShadow: 'none' } }}
                 >
                     {isLoading ? 'Creating account...' : 'Sign Up'}
                 </Button>
