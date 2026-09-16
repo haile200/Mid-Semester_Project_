@@ -1,0 +1,15 @@
+# Installs to /etc/systemd/system/backend.service on the EC2 host.
+[Unit]
+Description=Flask backend (gunicorn behind nginx)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=ec2-user
+WorkingDirectory=/home/ec2-user/Mid-Semester_Project_/backend
+ExecStart=/home/ec2-user/Mid-Semester_Project_/backend/venv/bin/gunicorn --bind 127.0.0.1:5000 --workers 2 --access-logfile - --error-logfile - app:app
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
