@@ -6,7 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 from app import app
 from mock_db import DummyCursor, DummyConnection
 
-@patch('routes.feed.get_db')
+@patch('services.get_db')
 def test_get_feed_returns_posts(mock_get_db):
     cursor = DummyCursor(
         description=(
@@ -60,7 +60,7 @@ def test_get_following_feed_requires_login():
     assert response.get_json() == {'message': 'Unauthorized. Please log in.'}
 
 @patch('services.get_user_by_session', return_value={'id': 1, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
-@patch('routes.feed.get_db')
+@patch('services.get_db')
 def test_get_following_feed_returns_posts(mock_get_db, mock_get_user):
     class DummyCursor:
         def __init__(self):

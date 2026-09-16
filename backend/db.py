@@ -7,5 +7,7 @@ def get_db():
         host=Config.DB_HOST,
         user=Config.DB_USER,
         password=Config.DB_PASSWORD,
-        database=Config.DB_NAME
+        database=Config.DB_NAME,
+        # Fail fast instead of outliving gunicorn's 30s worker timeout.
+        connection_timeout=5,
     )

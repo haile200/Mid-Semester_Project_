@@ -7,7 +7,7 @@ from app import app
 from mock_db import DummyCursor, DummyConnection
 
 
-@patch('routes.posts.get_db')
+@patch('services.get_db')
 def test_get_posts_returns_posts(mock_get_db):
     cursor = DummyCursor(
         description=(
@@ -68,7 +68,7 @@ def test_create_post_requires_login():
 
 
 @patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
-@patch('routes.posts.get_db')
+@patch('services.get_db')
 def test_create_post_succeeds_when_logged_in(mock_get_db, mock_get_user):
     cursor = DummyCursor()
     mock_get_db.return_value = DummyConnection(cursor)
@@ -88,19 +88,58 @@ def test_create_post_succeeds_when_logged_in(mock_get_db, mock_get_user):
     assert any('INSERT INTO posts' in q for q, _ in cursor.queries)
 
 
-@patch('routes.users.get_db')
+@patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
+@patch('services.get_db')
+def test_create_post_sanitizes_body_before_insert(mock_get_db, mock_get_user):
+    # Arrange
+    cursor = DummyCursor()
+    mock_get_db.return_value = DummyConnection(cursor)
+    client = app.test_client()
+    client.set_cookie('session_token', 'test-token')
+
+    # Act
+    response = client.post('/api/posts', json={
+        'title': 'Crux beta',
+        'body': '<p>heel hook</p><img src=x onerror="alert(1)"><script>alert(2)</script>',
+    })
+
+    # Assert
+    assert response.status_code == 201
+    insert_params = next(params for q, params in cursor.queries if 'INSERT INTO posts' in q)
+    assert insert_params[1] == '<p>heel hook</p>'
+
+
+@patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
+@patch('services.get_db')
+def test_create_post_rejects_body_that_is_only_malicious_markup(mock_get_db, mock_get_user):
+    # Arrange
+    client = app.test_client()
+    client.set_cookie('session_token', 'test-token')
+
+    # Act
+    response = client.post('/api/posts', json={
+        'title': 'Crux beta',
+        'body': '<script>alert(1)</script>',
+    })
+
+    # Assert
+    assert response.status_code == 400
+    assert response.get_json() == {'message': 'Title and body are required'}
+    mock_get_db.assert_not_called()
+
+
+@patch('services.get_db')
 def test_get_users_returns_list(mock_get_db):
     cursor = DummyCursor(
         description=(
             ('id',),
             ('name',),
-            ('email',),
             ('profile_picture',),
             ('postCount',),
         ),
         rows=[
-            (1, 'Alice', 'alice@example.com', None, 3),
-            (2, 'Bob', 'bob@example.com', 'http://pic', 1),
+            (1, 'Alice', None, 3),
+            (2, 'Bob', 'http://pic', 1),
         ]
     )
     mock_get_db.return_value = DummyConnection(cursor)
@@ -110,12 +149,12 @@ def test_get_users_returns_list(mock_get_db):
 
     assert response.status_code == 200
     assert response.get_json() == [
-        {'id': 1, 'name': 'Alice', 'email': 'alice@example.com', 'profile_picture': None, 'postCount': 3},
-        {'id': 2, 'name': 'Bob', 'email': 'bob@example.com', 'profile_picture': 'http://pic', 'postCount': 1},
+        {'id': 1, 'name': 'Alice', 'profile_picture': None, 'postCount': 3},
+        {'id': 2, 'name': 'Bob', 'profile_picture': 'http://pic', 'postCount': 1},
     ]
 
 
-@patch('routes.users.get_db')
+@patch('services.get_db')
 def test_get_user_by_id_not_found(mock_get_db):
     cursor = DummyCursor(one=None)
     mock_get_db.return_value = DummyConnection(cursor)
@@ -128,13 +167,12 @@ def test_get_user_by_id_not_found(mock_get_db):
 
 
 @patch('services.get_user_by_session', return_value={'id': 3, 'name': 'Test User', 'email': 'test@example.com', 'profile_picture': None})
-@patch('routes.users.get_db')
+@patch('services.get_db')
 def test_get_user_by_id_returns_user_and_following_flag(mock_get_db, mock_get_user):
     cursor = DummyCursor(
         description=(
             ('id',),
             ('name',),
-            ('email',),
             ('bio',),
             ('profile_picture',),
             ('created_at',),
@@ -142,7 +180,7 @@ def test_get_user_by_id_returns_user_and_following_flag(mock_get_db, mock_get_us
             ('followersCount',),
             ('followingCount',),
         ),
-        rows=[(7, 'Carol', 'carol@example.com', 'Bio', None, '2026-06-20', 4, 2, 5)],
+        rows=[(7, 'Carol', 'Bio', None, '2026-06-20', 4, 2, 5)],
         one=(1,)
     )
     mock_get_db.return_value = DummyConnection(cursor)
