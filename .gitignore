@@ -30,7 +30,10 @@ __pycache__
 *.pyo
 .coverage
 .pytest_cache
+htmlcov/
 cypress/screenshots
 cypress/videos
-CLAUDE.md
-*markdown_lectures_FullStack_Course_Materials.md
+
+# Private keys and certificates
+*.pem
+*.key
