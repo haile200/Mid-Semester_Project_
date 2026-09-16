@@ -1,0 +1,248 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+/* Page shell */
+.feed-page {
+    background-color: #FAF9F5;
+    min-height: 100vh;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+@media (min-width: 600px) {
+    .feed-page {
+        padding-top: 32px;
+        padding-bottom: 32px;
+    }
+}
+
+.feed-content {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/* Profile header (shown on /user-posts/:userId) */
+.feed-profile-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-bottom: 32px;
+}
+
+.MuiCard-root.feed-profile-card {
+    background-color: white;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06);
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.MuiAvatar-root.feed-profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+    border: 3px solid #F0997B;
+    background-color: #FAECE7;
+    color: #712B13;
+}
+
+.feed-profile-info {
+    flex: 1;
+}
+
+.MuiTypography-root.feed-profile-name {
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.MuiTypography-root.feed-profile-bio {
+    color: #555;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
+.MuiTypography-root.feed-profile-stats {
+    color: #D85A30;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.feed-profile-actions {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+}
+
+.feed-profile-loading {
+    display: flex;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 32px;
+}
+
+/* Follow button: coral when not following, muted outline when following */
+.MuiButton-root.feed-follow-button {
+    border-radius: 999px;
+    text-transform: none;
+    font-weight: 700;
+    background-color: #F0997B;
+    color: #4A1B0C;
+    border-color: #F0997B;
+    box-shadow: none;
+}
+
+.MuiButton-root.feed-follow-button:hover {
+    background-color: #E8875F;
+    border-color: #F0997B;
+    box-shadow: none;
+}
+
+.MuiButton-root.feed-follow-button--following {
+    background-color: transparent;
+    color: #5F5E5A;
+    border-color: #D3D1C7;
+}
+
+.MuiButton-root.feed-follow-button--following:hover {
+    background-color: #F1EFE8;
+    border-color: #D3D1C7;
+}
+
+.MuiButton-root.feed-edit-profile-button {
+    color: #666;
+    text-transform: none;
+}
+
+/* Edit profile dialog */
+.feed-edit-dialog-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.MuiButton-root.feed-edit-dialog-save {
+    color: #D85A30;
+    font-weight: 700;
+}
+
+/* Feed / Following tabs */
+.feed-tabs-container {
+    max-width: 640px;
+    margin: 0 auto;
+    margin-bottom: 16px;
+}
+
+.MuiTabs-root.feed-tabs {
+    min-height: 40px;
+}
+
+.MuiTabs-root.feed-tabs .MuiTabs-indicator {
+    background-color: #D85A30;
+    height: 3px;
+    border-radius: 3px;
+}
+
+.MuiTabs-root.feed-tabs .MuiTab-root {
+    text-transform: none;
+    font-weight: 700;
+    font-size: 14px;
+    min-height: 40px;
+    color: #5F5E5A;
+}
+
+.MuiTabs-root.feed-tabs .MuiTab-root.Mui-selected {
+    color: #2C2C2A;
+}
+
+.MuiTypography-root.feed-posts-heading {
+    margin-bottom: 24px;
+    font-weight: 600;
+}
+
+/* Login prompt on the Following tab when logged out */
+.feed-login-prompt {
+    text-align: center;
+    padding-top: 64px;
+    padding-bottom: 64px;
+    margin-top: 32px;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: white;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06);
+}
+
+.MuiTypography-root.feed-login-prompt-title {
+    color: #2C2C2A;
+    margin-bottom: 16px;
+    font-weight: 700;
+}
+
+.MuiTypography-root.feed-login-prompt-text {
+    color: #5F5E5A;
+    margin-bottom: 32px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.MuiButton-root.feed-login-prompt-button {
+    background-color: #2C2C2A;
+    text-transform: none;
+    padding: 8px 32px;
+    border-radius: 999px;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.MuiButton-root.feed-login-prompt-button:hover {
+    background-color: #444441;
+    box-shadow: none;
+}
+
+/* Post lists and status messages */
+.MuiAlert-root.feed-error {
+    margin-bottom: 16px;
+}
+
+.MuiTypography-root.feed-empty-message {
+    margin-bottom: 16px;
+    color: #999;
+    text-align: center;
+    padding-top: 32px;
+    padding-bottom: 32px;
+}
+
+.feed-profile-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feed-posts-column {
+    max-width: 640px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.feed-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    height: 40px;
+}
+
+.MuiTypography-root.feed-end-message {
+    color: #999;
+    font-style: italic;
+}

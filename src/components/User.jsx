@@ -4,56 +4,35 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import { Avatar as MuiAvatar } from '@mui/material';
-import { climb } from '../theme';
+import './User.css';
 
-export default function User({ id, name, email, postCount, profile_picture }) {
+export default function User({ id, name, postCount, profile_picture }) {
     const navigate = useNavigate();
 
     return (
         // Compact card row: avatar, identity, climb count - thumb-sized tap targets for mobile
-        <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            padding: '12px 16px',
-            backgroundColor: 'white',
-            borderRadius: '14px',
-            marginBottom: '10px',
-            border: '1px solid #EDEBE4',
-            boxShadow: '0 2px 8px rgba(44, 44, 42, 0.04)',
-        }}>
+        <Box className="user-card">
             <MuiAvatar
                 src={profile_picture || ''}
                 alt={name}
-                sx={{ width: 42, height: 42, backgroundColor: climb.coralTint, color: climb.onCoralTint, fontWeight: 'bold' }}
+                className="user-card-avatar"
             >
                 {name ? name[0].toUpperCase() : 'U'}
             </MuiAvatar>
 
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography fontWeight="bold" sx={{ fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            <Box className="user-card-info">
+                <Typography className="user-card-name">
                     {name}
                 </Typography>
-                <Typography sx={{ fontSize: '12px', color: climb.stone, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {postCount || 0} {postCount === 1 ? 'climb logged' : 'climbs logged'} · {email}
+                <Typography className="user-card-meta">
+                    {postCount || 0} {postCount === 1 ? 'climb logged' : 'climbs logged'}
                 </Typography>
             </Box>
 
             <Button
                 size="small"
                 onClick={() => navigate(`/user-posts/${id}`)}
-                sx={{
-                    backgroundColor: climb.coral,
-                    color: climb.onCoral,
-                    textTransform: 'none',
-                    fontWeight: 'bold',
-                    borderRadius: '999px',
-                    px: 2,
-                    fontSize: '12px',
-                    whiteSpace: 'nowrap',
-                    flexShrink: 0,
-                    '&:hover': { backgroundColor: climb.coralHover },
-                }}
+                className="user-card-button"
             >
                 See sends
             </Button>

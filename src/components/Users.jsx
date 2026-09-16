@@ -6,7 +6,7 @@ import Alert from '@mui/material/Alert';
 import Search from './Search';
 import User from './User';
 import { fetchUsers } from '../api';
-import { climb } from '../theme';
+import './Users.css';
 
 export default function Users() {
     const [users, setUsers] = useState([]);
@@ -24,7 +24,7 @@ export default function Users() {
 
         try {
             const data = await fetchUsers(currentOffset, limit, currentSearch);
-            
+
             // Smartly update array and filter duplicates
             setUsers((prev) => {
                 let combined = [];
@@ -33,7 +33,7 @@ export default function Users() {
                 } else {
                     combined = [...prev, ...(data || [])];
                 }
-                
+
                 // Convert array to Map (which prevents duplicate keys by ID) and revert to array
                 const uniqueUsers = Array.from(new Map(combined.map(user => [user.id, user])).values());
                 return uniqueUsers;
@@ -80,41 +80,40 @@ export default function Users() {
     }, [searchTerm]);
 
     return (
-        <Box sx={{ minHeight: '100vh', backgroundColor: climb.page, py: { xs: 2, sm: 4 } }}>
-            <Box sx={{ maxWidth: '640px', margin: '0 auto', px: 2 }}>
-                <Typography variant="h5" sx={{ mb: 0.5, fontWeight: 'bold', color: climb.rock }}>
+        <Box className="users-page">
+            <Box className="users-content">
+                <Typography variant="h5" className="users-title">
                     Community
                 </Typography>
-                <Typography sx={{ mb: 2, color: climb.stone, fontSize: '14px' }}>
+                <Typography className="users-subtitle">
                     Find climbers to follow and swap beta with
                 </Typography>
                 <Search onSearch={setSearchTerm} />
 
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                {error && <Alert severity="error" className="users-error">{error}</Alert>}
 
                 {users.length === 0 && !isLoading && !error && (
-                    <Typography sx={{ textAlign: 'center', py: 4, color: climb.stone }}>
+                    <Typography className="users-empty-message">
                         No climbers found. Try another name.
                     </Typography>
                 )}
 
                 <Box>
                     {users.map((u) => (
-                        <User 
-                            key={u.id} 
-                            id={u.id} 
-                            name={u.name} 
-                            email={u.email} 
-                            postCount={u.postCount} 
-                            profile_picture={u.profile_picture} 
+                        <User
+                            key={u.id}
+                            id={u.id}
+                            name={u.name}
+                            postCount={u.postCount}
+                            profile_picture={u.profile_picture}
                         />
                     ))}
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, height: '40px' }}>
-                    {isLoading && <CircularProgress sx={{ color: climb.coralDark }} size={30} />}
+                <Box className="users-footer">
+                    {isLoading && <CircularProgress className="users-loading-spinner" size={30} />}
                     {!hasMore && users.length > 0 && (
-                        <Typography sx={{ color: climb.stone, fontStyle: 'italic' }}>
+                        <Typography className="users-end-message">
                             No more climbers to load
                         </Typography>
                     )}

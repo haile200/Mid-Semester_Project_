@@ -1,0 +1,150 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file.
+   Mobile values are the defaults; the 600px media queries hold the wider layout. */
+
+/* Bar */
+.MuiAppBar-root.topbar {
+    background-color: #2C2C2A;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
+}
+
+.MuiToolbar-root.topbar-toolbar {
+    gap: 8px;
+    min-height: 56px;
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+@media (min-width: 600px) {
+    .MuiToolbar-root.topbar-toolbar {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+}
+
+/* Brand */
+.topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    margin-right: 4px;
+}
+
+@media (min-width: 600px) {
+    .topbar-brand {
+        margin-right: 16px;
+    }
+}
+
+.MuiSvgIcon-root.topbar-brand-icon {
+    color: #F0997B;
+    font-size: 26px;
+}
+
+.MuiTypography-root.topbar-brand-title {
+    font-weight: bold;
+    font-size: 18px;
+    letter-spacing: -0.02em;
+}
+
+/* New post call to action */
+.MuiButton-root.topbar-new-post-button {
+    background-color: #F0997B;
+    color: #4A1B0C;
+    text-transform: none;
+    font-weight: bold;
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.MuiButton-root.topbar-new-post-button:hover {
+    background-color: #E8875F;
+}
+
+.topbar-spacer {
+    flex-grow: 1;
+}
+
+/* Navigation links */
+.topbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+@media (min-width: 600px) {
+    .topbar-nav {
+        gap: 4px;
+    }
+}
+
+.MuiButton-root.topbar-nav-button {
+    text-transform: none;
+    color: #F1EFE8;
+    min-width: auto;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+@media (min-width: 600px) {
+    .MuiButton-root.topbar-nav-button {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+.MuiButton-root.topbar-nav-button:hover {
+    background-color: #444441;
+}
+
+.MuiButton-root.topbar-nav-button--wide-only {
+    display: none;
+}
+
+@media (min-width: 600px) {
+    .MuiButton-root.topbar-nav-button--wide-only {
+        display: inline-flex;
+    }
+}
+
+/* Logged-in account block */
+.topbar-account {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-left: 8px;
+}
+
+.MuiTypography-root.topbar-profile-link {
+    color: #F1EFE8;
+    font-size: 13px;
+    line-height: 1.2;
+    cursor: pointer;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@media (min-width: 600px) {
+    .MuiTypography-root.topbar-profile-link {
+        max-width: 220px;
+    }
+}
+
+.MuiTypography-root.topbar-profile-link:hover {
+    color: #F0997B;
+}
+
+.MuiButton-root.topbar-logout-button {
+    color: #F0997B;
+    text-transform: none;
+    font-weight: bold;
+    padding: 0;
+    min-width: auto;
+    font-size: 13px;
+}

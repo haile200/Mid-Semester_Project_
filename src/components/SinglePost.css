@@ -1,0 +1,187 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+/* Card */
+.MuiCard-root.post-card {
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06);
+    margin-bottom: 16px;
+    transition: box-shadow 0.2s ease;
+}
+
+.MuiCard-root.post-card:hover {
+    box-shadow: 0 6px 16px rgba(44, 44, 42, 0.12);
+}
+
+@media (min-width: 600px) {
+    .MuiCard-root.post-card {
+        padding: 24px;
+    }
+}
+
+/* Header: avatar, author, timestamp */
+.post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.post-header-text {
+    margin-left: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.MuiTypography-root.post-author-name {
+    line-height: 1.3;
+}
+
+.MuiTypography-root.post-timestamp {
+    color: #5F5E5A;
+}
+
+/* Badges */
+.post-badges {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.MuiChip-root.post-badge {
+    height: 22px;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+}
+
+.MuiChip-root.post-badge--bouldering {
+    background-color: #FAECE7;
+    color: #712B13;
+}
+
+.MuiChip-root.post-badge--lead {
+    background-color: #EEEDFE;
+    color: #3C3489;
+}
+
+.MuiChip-root.post-badge--top-rope {
+    background-color: #E1F5EE;
+    color: #085041;
+}
+
+.MuiChip-root.post-badge--grade {
+    background-color: #F1EFE8;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.post-badge--sent {
+    background-color: #E1F5EE;
+    color: #085041;
+}
+
+.MuiChip-root.post-badge--project {
+    background-color: #FAEEDA;
+    color: #633806;
+}
+
+.MuiChip-root .MuiSvgIcon-root.post-badge-sent-icon {
+    font-size: 13px;
+    color: #085041;
+}
+
+/* Title, image, body */
+.MuiTypography-root.post-title {
+    font-size: 17px;
+    margin-bottom: 0.35em;
+}
+
+.post-image-container {
+    width: 100%;
+    max-height: 400px;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-bottom: 16px;
+}
+
+.post-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.post-body {
+    color: #444441;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.post-body p {
+    margin: 0 0 10px 0;
+}
+
+.post-body a {
+    color: #D85A30;
+    text-decoration: none;
+}
+
+/* Footer and "Share beta" */
+.post-footer {
+    display: flex;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #F1EFE8;
+}
+
+.post-footer-spacer {
+    flex-grow: 1;
+}
+
+.MuiTypography-root.beta-shared-message {
+    font-size: 12px;
+    font-weight: 700;
+    color: #085041;
+}
+
+.MuiButton-root.beta-button {
+    background-color: #F0997B;
+    color: #4A1B0C;
+    text-transform: none;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 12px;
+}
+
+.MuiButton-root.beta-button:hover {
+    background-color: #E8875F;
+}
+
+.beta-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.beta-input .MuiOutlinedInput-root {
+    border-radius: 999px;
+    font-size: 13px;
+}
+
+.MuiButton-root.beta-send-button {
+    background-color: #2C2C2A;
+    color: #F1EFE8;
+    text-transform: none;
+    font-weight: 700;
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 12px;
+}
+
+.MuiButton-root.beta-send-button:hover {
+    background-color: #444441;
+}

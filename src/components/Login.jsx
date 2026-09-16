@@ -8,7 +8,7 @@ import Divider from '@mui/material/Divider';
 import TerrainIcon from '@mui/icons-material/Terrain';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../api';
-import { climb } from '../theme';
+import './Login.css';
 
 export default function Login({ onLogin }) {
     const navigate = useNavigate();
@@ -32,21 +32,16 @@ export default function Login({ onLogin }) {
         }
 
         setIsLoading(true);
-        window.__loginAttempt = { email, password };
-        console.debug('Login handleSubmit', { email, password });
         try {
             const response = await login(email, password);
-            window.__loginResponse = response;
-            console.debug('Login response', response);
             localStorage.setItem('currentUser', JSON.stringify(response.user));
             localStorage.setItem('userId', response.user.id);
-            
+
             if (typeof onLogin === 'function') {
                 onLogin(response.user);
             }
             navigate('/');
         } catch (error) {
-            window.__loginError = error.message || 'Login failed.';
             console.error('Login failed', error);
             setMessage(error.message || 'Login failed.');
         } finally {
@@ -55,29 +50,29 @@ export default function Login({ onLogin }) {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', backgroundColor: climb.page, px: 2 }}>
-            <Card sx={{ padding: 4, width: '400px', maxWidth: '100%', borderRadius: '16px', border: '1px solid #EDEBE4', boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)' }}>
+        <Box className="login-page">
+            <Card className="login-card">
                 {/* Chalk circle with the mountain mark - the brand moment of the page */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1.5 }}>
-                    <Box sx={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: climb.coralTint, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <TerrainIcon sx={{ color: climb.coralDark, fontSize: 30 }} />
+                <Box className="login-logo-row">
+                    <Box className="login-logo-circle">
+                        <TerrainIcon className="login-logo-icon" />
                     </Box>
                 </Box>
-                <Typography variant="h5" align="center" fontWeight="bold" gutterBottom>
+                <Typography variant="h5" className="login-title">
                     Welcome back, climber
                 </Typography>
-                <Typography variant="body2" align="center" sx={{ mb: 3, color: climb.stone }}>
+                <Typography variant="body2" className="login-subtitle">
                     Log in to find your next project
                 </Typography>
 
                 {message ? (
-                    <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                    <Typography variant="body2" className="login-error">
                         {message}
                     </Typography>
                 ) : null}
 
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Email</Typography>
-                <Box sx={{ mb: 2 }} data-cy="login-email">
+                <Typography variant="body2" className="login-field-label">Email</Typography>
+                <Box className="login-field" data-cy="login-email">
                     <TextField
                         fullWidth
                         placeholder="you@example.com"
@@ -88,8 +83,8 @@ export default function Login({ onLogin }) {
                     />
                 </Box>
 
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Password</Typography>
-                <Box sx={{ mb: 3 }} data-cy="login-password">
+                <Typography variant="body2" className="login-field-label">Password</Typography>
+                <Box className="login-field login-field--last" data-cy="login-password">
                     <TextField
                         fullWidth
                         type="password"
@@ -107,18 +102,18 @@ export default function Login({ onLogin }) {
                     disabled={isLoading}
                     data-cy="login-submit"
                     onClick={handleSubmit}
-                    sx={{ backgroundColor: climb.rock, textTransform: 'none', py: 1.5, mb: 2, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.rockHover, boxShadow: 'none' } }}
+                    className="login-submit-button"
                 >
                     {isLoading ? 'Logging in...' : 'Login'}
                 </Button>
 
-                <Divider sx={{ mb: 2, fontSize: '12px', color: 'text.secondary' }}>OR</Divider>
+                <Divider className="login-divider">OR</Divider>
 
                 <Button
                     fullWidth
                     variant="outlined"
                     onClick={() => navigate('/signup')}
-                    sx={{ textTransform: 'none', py: 1.5, borderRadius: '999px', color: climb.coralDark, borderColor: climb.coral, fontWeight: 'bold', '&:hover': { borderColor: climb.coralDark, backgroundColor: climb.coralTint } }}
+                    className="login-signup-button"
                 >
                     Join the crew
                 </Button>

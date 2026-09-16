@@ -1,0 +1,31 @@
+/* The border selectors deliberately match the specificity of the original sx
+   rules: strong enough to beat MUI's resting and hover outline colors, but
+   still weaker than MUI's focused outline, so the focus ring keeps working. */
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.MuiTextField-root.search-input {
+    background-color: white;
+    border-radius: 999px;
+}
+
+.search-input .MuiOutlinedInput-root {
+    border-radius: 999px;
+}
+
+.search-input .MuiOutlinedInput-root fieldset {
+    border-color: #EDEBE4;
+}
+
+.search-input .MuiOutlinedInput-root:hover fieldset {
+    border-color: #F0997B;
+}
+
+.MuiSvgIcon-root.search-icon {
+    color: #5F5E5A;
+    font-size: 20px;
+}

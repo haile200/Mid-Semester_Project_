@@ -1,0 +1,131 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+/* Page and card */
+.new-post-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 32px 16px;
+    background-color: #FAF9F5;
+}
+
+.MuiCard-root.new-post-card {
+    padding: 20px;
+    width: 700px;
+    max-width: 100%;
+    border-radius: 16px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06);
+}
+
+@media (min-width: 600px) {
+    .MuiCard-root.new-post-card {
+        padding: 32px;
+    }
+}
+
+/* Heading and status messages */
+.MuiTypography-root.new-post-title {
+    text-align: center;
+    margin-bottom: 32px;
+    color: #2C2C2A;
+}
+
+.MuiTypography-root.new-post-author-note {
+    margin-bottom: 24px;
+}
+
+.MuiTypography-root.new-post-login-required {
+    color: #D32F2F;
+    margin-bottom: 24px;
+}
+
+.MuiTypography-root.new-post-error {
+    color: #D32F2F;
+    margin-bottom: 16px;
+}
+
+/* Form fields */
+.MuiTypography-root.new-post-label {
+    margin-bottom: 8px;
+}
+
+.MuiTextField-root.new-post-input {
+    margin-bottom: 24px;
+}
+
+/* Style and grade chip pickers */
+.new-post-chip-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.MuiChip-root.new-post-chip {
+    font-weight: 700;
+    font-size: 12px;
+    border-radius: 999px;
+    background-color: transparent;
+    color: #5F5E5A;
+    border: 1px solid #D3D1C7;
+}
+
+.MuiChip-root.new-post-style-chip--selected {
+    background-color: #FAECE7;
+    color: #712B13;
+    border: 1px solid #F0997B;
+}
+
+.MuiChip-root.new-post-grade-chip--selected {
+    background-color: #2C2C2A;
+    color: #F1EFE8;
+    border: 1px solid #2C2C2A;
+}
+
+/* Hover rules include .MuiChip-clickable to outrank MUI's clickable-chip hover */
+.MuiChip-root.MuiChip-clickable.new-post-style-chip:hover {
+    background-color: #FAECE7;
+}
+
+.MuiChip-root.MuiChip-clickable.new-post-grade-chip:hover {
+    background-color: #F1EFE8;
+}
+
+.MuiChip-root.MuiChip-clickable.new-post-grade-chip--selected:hover {
+    background-color: #444441;
+}
+
+/* Rich text editor */
+.new-post-editor {
+    margin-bottom: 32px;
+}
+
+.new-post-editor .ql-container {
+    min-height: 200px;
+    font-size: 16px;
+}
+
+/* Buttons */
+.MuiButton-root.new-post-submit-button {
+    background-color: #F0997B;
+    color: #4A1B0C;
+    text-transform: none;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    border-radius: 999px;
+    font-weight: 700;
+    box-shadow: none;
+}
+
+.MuiButton-root.new-post-submit-button:hover {
+    background-color: #E8875F;
+    box-shadow: none;
+}
+
+.MuiButton-root.new-post-login-button {
+    margin-top: 16px;
+    text-transform: none;
+}

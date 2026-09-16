@@ -10,7 +10,7 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import Chip from '@mui/material/Chip';
 import { createPost } from '../api';
-import { climb } from '../theme';
+import './NewPost.css';
 
 const CLIMB_STYLES = ['Bouldering', 'Lead', 'Top rope'];
 const CLIMB_GRADES = ['V2', 'V3', 'V4', 'V5', 'V6', '6b+', '6c+', '7a'];
@@ -19,7 +19,7 @@ export default function NewPost({ currentUser }) {
     const navigate = useNavigate();
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [imageUrl, setImageUrl] = useState(''); 
+    const [imageUrl, setImageUrl] = useState('');
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     // Visual-only climbing metadata until the backend stores grades and styles
@@ -32,9 +32,9 @@ export default function NewPost({ currentUser }) {
     // Define the modules for the Quill editor toolbar
     const modules = {
         toolbar: [
-            ['bold', 'italic', 'underline'], 
-            ['link'], 
-            ['clean'] 
+            ['bold', 'italic', 'underline'],
+            ['link'],
+            ['clean']
         ],
     };
 
@@ -65,100 +65,81 @@ export default function NewPost({ currentUser }) {
     };
 
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', py: 4, backgroundColor: climb.page, px: 2 }}>
-            <Card sx={{ padding: { xs: 2.5, sm: 4 }, width: '700px', maxWidth: '100%', borderRadius: '16px', border: '1px solid #EDEBE4', boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)' }}>
-                <Typography variant="h5" align="center" fontWeight="bold" gutterBottom sx={{ mb: 4, color: climb.rock }}>
+        <Box className="new-post-page">
+            <Card className="new-post-card">
+                <Typography variant="h5" className="new-post-title">
                     New Post
                 </Typography>
 
                 {activeUser ? (
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    <Typography variant="body2" className="new-post-author-note">
                         Posting as <strong>{activeUser.name}</strong>
                     </Typography>
                 ) : (
-                    <Typography variant="body2" color="error" sx={{ mb: 3 }}>
+                    <Typography variant="body2" className="new-post-login-required">
                         You must be logged in to publish a post.
                     </Typography>
                 )}
 
                 {message && (
-                    <Typography variant="body2" color="error" sx={{ mb: 2 }}>
+                    <Typography variant="body2" className="new-post-error">
                         {message}
                     </Typography>
                 )}
 
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Title</Typography>
+                <Typography variant="body2" className="new-post-label">Title</Typography>
                 <TextField
                     fullWidth
                     placeholder="What did you climb?"
                     size="small"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    sx={{ mb: 3 }}
+                    className="new-post-input"
                     disabled={!activeUser || isLoading}
                 />
 
                 {/* Style and grade chips - gym-tag style pickers, visual metadata for now */}
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Style</Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                <Typography variant="body2" className="new-post-label">Style</Typography>
+                <Box className="new-post-chip-row">
                     {CLIMB_STYLES.map((style) => (
                         <Chip
                             key={style}
                             label={style}
                             onClick={() => setClimbStyle(style)}
-                            sx={{
-                                fontWeight: 'bold',
-                                fontSize: '12px',
-                                borderRadius: '999px',
-                                backgroundColor: climbStyle === style ? climb.coralTint : 'transparent',
-                                color: climbStyle === style ? climb.onCoralTint : climb.stone,
-                                border: climbStyle === style ? `1px solid ${climb.coral}` : '1px solid #D3D1C7',
-                                '&:hover': { backgroundColor: climb.coralTint },
-                            }}
+                            className={`new-post-chip new-post-style-chip${climbStyle === style ? ' new-post-style-chip--selected' : ''}`}
                         />
                     ))}
                 </Box>
 
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Grade</Typography>
-                <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+                <Typography variant="body2" className="new-post-label">Grade</Typography>
+                <Box className="new-post-chip-row">
                     {CLIMB_GRADES.map((grade) => (
                         <Chip
                             key={grade}
                             label={grade}
                             onClick={() => setClimbGrade(grade)}
-                            sx={{
-                                fontWeight: 'bold',
-                                fontSize: '12px',
-                                borderRadius: '999px',
-                                backgroundColor: climbGrade === grade ? climb.rock : 'transparent',
-                                color: climbGrade === grade ? climb.chalk : climb.stone,
-                                border: climbGrade === grade ? `1px solid ${climb.rock}` : '1px solid #D3D1C7',
-                                '&:hover': { backgroundColor: climbGrade === grade ? climb.rockHover : climb.chalk },
-                            }}
+                            className={`new-post-chip new-post-grade-chip${climbGrade === grade ? ' new-post-grade-chip--selected' : ''}`}
                         />
                     ))}
                 </Box>
-                
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Image URL (Optional)</Typography>
+
+                <Typography variant="body2" className="new-post-label">Image URL (Optional)</Typography>
                 <TextField
                     fullWidth
                     placeholder="https://example.com/image.jpg"
                     size="small"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
-                    sx={{ mb: 3 }}
+                    className="new-post-input"
                     disabled={!activeUser || isLoading}
                 />
 
-                <Typography variant="body2" fontWeight="bold" sx={{ mb: 1 }}>Body</Typography>
-                <Box sx={{ 
-                    mb: 4, 
-                    '.ql-container': { minHeight: '200px', fontSize: '16px' } 
-                }}>
-                    <ReactQuill 
-                        theme="snow" 
-                        value={body} 
-                        onChange={setBody} 
+                <Typography variant="body2" className="new-post-label">Body</Typography>
+                <Box className="new-post-editor">
+                    <ReactQuill
+                        theme="snow"
+                        value={body}
+                        onChange={setBody}
                         modules={modules}
                         placeholder="Describe the problem, the moves, your beta..."
                         readOnly={!activeUser || isLoading}
@@ -170,7 +151,7 @@ export default function NewPost({ currentUser }) {
                     variant="contained"
                     disabled={!activeUser || isLoading}
                     onClick={handleSubmit}
-                    sx={{ backgroundColor: climb.coral, color: climb.onCoral, textTransform: 'none', py: 1.5, borderRadius: '999px', fontWeight: 'bold', boxShadow: 'none', '&:hover': { backgroundColor: climb.coralHover, boxShadow: 'none' } }}
+                    className="new-post-submit-button"
                 >
                     {isLoading ? 'Posting...' : 'Post climb'}
                 </Button>
@@ -180,7 +161,7 @@ export default function NewPost({ currentUser }) {
                         fullWidth
                         variant="text"
                         onClick={() => navigate('/login')}
-                        sx={{ mt: 2, textTransform: 'none' }}
+                        className="new-post-login-button"
                     >
                         Go to login
                     </Button>

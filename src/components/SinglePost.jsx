@@ -7,9 +7,10 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import CheckIcon from '@mui/icons-material/Check';
+import DOMPurify from 'dompurify';
 import Avatar from './Avatar';
-import styles from './SinglePost.module.css';
-import { climb, climbingBadges } from '../theme';
+import { climbingBadges } from '../theme';
+import './SinglePost.css';
 
 export default function SinglePost({ title, author, body, imageUrl, createdAt }) {
     // "Share beta" is climber-speak for route advice - local UI only for now
@@ -18,6 +19,7 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
     const [betaSent, setBetaSent] = useState(false);
 
     const badges = climbingBadges(`${title}|${author}`);
+    const disciplineClass = `post-badge--${badges.discipline.label.toLowerCase().replace(/\s+/g, '-')}`;
 
     const getTimeAgo = (dateString) => {
         if (!dateString) return '';
@@ -45,27 +47,17 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
         setBetaSent(true);
     };
 
-    const chipSx = { height: 22, fontSize: '11px', fontWeight: 'bold', borderRadius: '999px' };
-
     return (
         // Chalk-white card with a soft stone shadow - modern and calm like a gym wall
-        <Card sx={{
-            p: { xs: 2, sm: 3 },
-            borderRadius: '14px',
-            border: '1px solid #EDEBE4',
-            boxShadow: '0 2px 8px rgba(44, 44, 42, 0.06)',
-            mb: 2,
-            transition: 'box-shadow 0.2s ease',
-            '&:hover': { boxShadow: '0 6px 16px rgba(44, 44, 42, 0.12)' },
-        }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
+        <Card className="post-card">
+            <Box className="post-header">
                 <Avatar name={author || 'User'} size={40} />
-                <Box sx={{ ml: 1.5, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="subtitle1" fontWeight="bold" sx={{ lineHeight: 1.3 }}>
+                <Box className="post-header-text">
+                    <Typography variant="subtitle1" className="post-author-name">
                         {author || 'Unknown Author'}
                     </Typography>
                     {createdAt && (
-                        <Typography variant="caption" sx={{ color: climb.stone }}>
+                        <Typography variant="caption" className="post-timestamp">
                             {getTimeAgo(createdAt)}
                         </Typography>
                     )}
@@ -73,64 +65,51 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
             </Box>
 
             {/* Discipline, grade, and status badges - the vocabulary climbers scan for first */}
-            <Box sx={{ display: 'flex', gap: 0.75, mb: 1.5, flexWrap: 'wrap' }}>
-                <Chip label={badges.discipline.label} sx={{ ...chipSx, backgroundColor: badges.discipline.bg, color: badges.discipline.fg }} />
-                <Chip label={badges.grade} sx={{ ...chipSx, backgroundColor: climb.chalk, color: climb.rock }} />
+            <Box className="post-badges">
+                <Chip label={badges.discipline.label} className={`post-badge ${disciplineClass}`} />
+                <Chip label={badges.grade} className="post-badge post-badge--grade" />
                 {badges.sent ? (
-                    <Chip icon={<CheckIcon sx={{ fontSize: 13, color: `${climb.onSentTint} !important` }} />} label="Sent"
-                        sx={{ ...chipSx, backgroundColor: climb.sentTint, color: climb.onSentTint }} />
+                    <Chip
+                        icon={<CheckIcon className="post-badge-sent-icon" />}
+                        label="Sent"
+                        className="post-badge post-badge--sent"
+                    />
                 ) : (
-                    <Chip label="Project" sx={{ ...chipSx, backgroundColor: climb.projectTint, color: climb.onProjectTint }} />
+                    <Chip label="Project" className="post-badge post-badge--project" />
                 )}
             </Box>
 
-            <Typography variant="h6" fontWeight="bold" gutterBottom sx={{ fontSize: '17px' }}>
+            <Typography variant="h6" className="post-title">
                 {title}
             </Typography>
 
             {imageUrl && (
-                <Box sx={{ width: '100%', maxHeight: '400px', overflow: 'hidden', borderRadius: '10px', mb: 2 }}>
+                <Box className="post-image-container">
                     <img
                         src={imageUrl}
                         alt="Post attachment"
-                        className={styles.postImage}
+                        className="post-image"
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                 </Box>
             )}
 
             <Box
-                sx={{
-                    color: '#444441',
-                    fontSize: '14px',
-                    lineHeight: 1.6,
-                    '& p': { margin: '0 0 10px 0' },
-                    '& a': { color: climb.coralDark, textDecoration: 'none' },
-                }}
-                dangerouslySetInnerHTML={{ __html: body }}
+                className="post-body"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(body) }}
             />
 
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1.5, pt: 1.5, borderTop: '1px solid #F1EFE8' }}>
-                <Box sx={{ flexGrow: 1 }} />
+            <Box className="post-footer">
+                <Box className="post-footer-spacer" />
                 {betaSent ? (
-                    <Typography sx={{ fontSize: '12px', fontWeight: 'bold', color: climb.onSentTint }}>
+                    <Typography className="beta-shared-message">
                         Beta shared with {author ? author.split(' ')[0] : 'the author'}
                     </Typography>
                 ) : (
                     <Button
-                        startIcon={<LightbulbOutlinedIcon sx={{ fontSize: 15 }} />}
+                        startIcon={<LightbulbOutlinedIcon />}
                         onClick={() => setIsBetaOpen((open) => !open)}
-                        sx={{
-                            backgroundColor: climb.coral,
-                            color: climb.onCoral,
-                            textTransform: 'none',
-                            fontWeight: 'bold',
-                            borderRadius: '999px',
-                            px: 1.75,
-                            py: 0.5,
-                            fontSize: '12px',
-                            '&:hover': { backgroundColor: climb.coralHover },
-                        }}
+                        className="beta-button"
                     >
                         Share beta
                     </Button>
@@ -138,28 +117,16 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
             </Box>
 
             {isBetaOpen && !betaSent && (
-                <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
+                <Box className="beta-form">
                     <TextField
                         fullWidth
                         size="small"
                         placeholder="Share your beta - heel hooks, rests, sequences..."
                         value={betaText}
                         onChange={(e) => setBetaText(e.target.value)}
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', fontSize: '13px' } }}
+                        className="beta-input"
                     />
-                    <Button
-                        onClick={handleSendBeta}
-                        sx={{
-                            backgroundColor: climb.rock,
-                            color: climb.chalk,
-                            textTransform: 'none',
-                            fontWeight: 'bold',
-                            borderRadius: '999px',
-                            px: 2,
-                            fontSize: '12px',
-                            '&:hover': { backgroundColor: climb.rockHover },
-                        }}
-                    >
+                    <Button onClick={handleSendBeta} className="beta-send-button">
                         Send
                     </Button>
                 </Box>

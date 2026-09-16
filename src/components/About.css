@@ -1,0 +1,30 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.about-page {
+    background-color: #fdfdfd;
+    min-height: 100vh;
+    padding-top: 48px;
+    padding-bottom: 48px;
+}
+
+.about-card {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px;
+    text-align: center;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.MuiTypography-root.about-title {
+    margin-bottom: 24px;
+    font-weight: 600;
+    color: #333;
+}
+
+.MuiTypography-root.about-text {
+    color: #555;
+    line-height: 1.8;
+}

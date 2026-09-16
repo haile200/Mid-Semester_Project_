@@ -1,0 +1,60 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.user-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: white;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.04);
+}
+
+.MuiAvatar-root.user-card-avatar {
+    width: 42px;
+    height: 42px;
+    background-color: #FAECE7;
+    color: #712B13;
+    font-weight: bold;
+}
+
+/* min-width: 0 lets the text column shrink so long names truncate with an ellipsis */
+.user-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.MuiTypography-root.user-card-name {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.MuiTypography-root.user-card-meta {
+    font-size: 12px;
+    color: #5F5E5A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.MuiButton-root.user-card-button {
+    background-color: #F0997B;
+    color: #4A1B0C;
+    text-transform: none;
+    font-weight: bold;
+    border-radius: 999px;
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.MuiButton-root.user-card-button:hover {
+    background-color: #E8875F;
+}

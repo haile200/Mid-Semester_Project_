@@ -1,0 +1,66 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+/* Page shell */
+.users-page {
+    min-height: 100vh;
+    background-color: #FAF9F5;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+@media (min-width: 600px) {
+    .users-page {
+        padding-top: 32px;
+        padding-bottom: 32px;
+    }
+}
+
+.users-content {
+    max-width: 640px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+/* Heading */
+.MuiTypography-root.users-title {
+    margin-bottom: 4px;
+    font-weight: bold;
+    color: #2C2C2A;
+}
+
+.MuiTypography-root.users-subtitle {
+    margin-bottom: 16px;
+    color: #5F5E5A;
+    font-size: 14px;
+}
+
+/* Status messages */
+.MuiAlert-root.users-error {
+    margin-bottom: 16px;
+}
+
+.MuiTypography-root.users-empty-message {
+    text-align: center;
+    padding-top: 32px;
+    padding-bottom: 32px;
+    color: #5F5E5A;
+}
+
+/* Infinite scroll footer */
+.users-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 32px;
+    height: 40px;
+}
+
+.MuiCircularProgress-root.users-loading-spinner {
+    color: #D85A30;
+}
+
+.MuiTypography-root.users-end-message {
+    color: #5F5E5A;
+    font-style: italic;
+}

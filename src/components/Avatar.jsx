@@ -1,6 +1,6 @@
 import React from 'react';
 import Box from '@mui/material/Box';
-import styles from './Avatar.module.css';
+import './Avatar.css';
 
 export default function Avatar({ name = 'User', profileImage = null, size = 40 }) {
     // Generate initials from name
@@ -22,28 +22,11 @@ export default function Avatar({ name = 'User', profileImage = null, size = 40 }
     const initials = getInitials(name);
 
     return (
-        <Box
-            sx={{
-                width: size,
-                height: size,
-                borderRadius: '50%',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#7b61ff',
-                color: 'white',
-                fontWeight: 'bold',
-                fontSize: `${size / 2.5}px`,
-                flexShrink: 0,
-                border: '2px solid #f0f0f0',
-                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            }}
-        >
+        <Box className="avatar-circle">
             <img
                 src={avatarUrl}
                 alt={name}
-                className={styles.image}
+                className="avatar-image"
                 onError={(e) => {
                     // Fallback if image fails to load
                     e.target.style.display = 'none';

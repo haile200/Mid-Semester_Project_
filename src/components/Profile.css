@@ -1,0 +1,110 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+/* Loading state */
+.profile-loading {
+    display: flex;
+    justify-content: center;
+    margin-top: 64px;
+}
+
+.MuiCircularProgress-root.profile-loading-spinner {
+    color: #D85A30;
+}
+
+/* Page and card */
+.profile-container {
+    min-height: 100vh;
+    background-color: #FAF9F5;
+    padding: 16px;
+}
+
+@media (min-width: 600px) {
+    .profile-container {
+        padding-top: 40px;
+        padding-bottom: 40px;
+    }
+}
+
+.profile-card {
+    max-width: 480px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: 16px;
+    border: 1px solid #EDEBE4;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.06);
+    overflow: hidden;
+}
+
+/* Header band with avatar, name, and email */
+.profile-header {
+    background-color: #F1EFE8;
+    text-align: center;
+    padding: 32px 16px 24px;
+}
+
+.MuiAvatar-root.profile-avatar {
+    width: 76px;
+    height: 76px;
+    margin: 0 auto;
+    font-size: 28px;
+    font-weight: bold;
+    background-color: #FAECE7;
+    color: #712B13;
+    border: 3px solid #F0997B;
+}
+
+.MuiTypography-root.profile-name {
+    margin-top: 12px;
+    color: #2C2C2A;
+}
+
+.MuiTypography-root.profile-email {
+    color: #5F5E5A;
+    font-size: 14px;
+}
+
+/* Climbing card section */
+.profile-body {
+    padding: 16px;
+}
+
+@media (min-width: 600px) {
+    .profile-body {
+        padding: 24px;
+    }
+}
+
+.MuiTypography-root.profile-section-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #2C2C2A;
+}
+
+.profile-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.MuiChip-root.profile-badge {
+    font-weight: bold;
+    font-size: 12px;
+    border-radius: 999px;
+}
+
+.MuiChip-root.profile-badge--discipline {
+    background-color: #FAECE7;
+    color: #712B13;
+}
+
+.MuiChip-root.profile-badge--project {
+    background-color: #F1EFE8;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.profile-badge--open {
+    background-color: #E1F5EE;
+    color: #085041;
+}
