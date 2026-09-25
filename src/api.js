@@ -146,6 +146,26 @@ export const createPost = async (title, body, author_id, imageUrl = '') => {
     return handleResponse(response);
 };
 
+export const fetchComments = async (postId, offset = 0, limit = 50) => {
+    const params = new URLSearchParams({ start: offset, limit });
+    const response = await fetch(`${BASE_URL}/posts/${postId}/comments?${params.toString()}`, {
+        credentials: 'include'
+    });
+    return handleResponse(response);
+};
+
+export const createComment = async (postId, body, parentId = null) => {
+    const payload = { body };
+    if (parentId !== null) payload.parent_id = parentId;
+    const response = await fetch(`${BASE_URL}/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+    });
+    return handleResponse(response);
+};
+
 export const updateProfile = async (bio, profilePicture) => {
     // We assume BASE_URL is defined at the top of your api.js file
     const response = await fetch(`${BASE_URL}/users/profile`, {

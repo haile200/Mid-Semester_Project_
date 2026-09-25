@@ -1,0 +1,196 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.comment-thread {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+/* Status messages */
+.comment-thread-status {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0;
+}
+
+.MuiCircularProgress-root.comment-thread-spinner {
+    color: #D85A30;
+}
+
+.MuiTypography-root.comment-thread-empty,
+.MuiTypography-root.comment-login-prompt {
+    font-size: 13px;
+    color: #5F5E5A;
+}
+
+.comment-login-prompt a {
+    color: #D85A30;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.MuiTypography-root.comment-thread-error {
+    font-size: 12px;
+    color: #D32F2F;
+}
+
+/* A single comment */
+.comment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.MuiAvatar-root.comment-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    font-weight: 700;
+    background-color: #FAECE7;
+    color: #712B13;
+}
+
+.comment-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.MuiTypography-root.comment-author {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.comment-bot-chip {
+    height: 18px;
+    font-size: 10px;
+    font-weight: 700;
+    background-color: #E1F5EE;
+    color: #085041;
+}
+
+.MuiTypography-root.comment-time {
+    font-size: 11px;
+    color: #5F5E5A;
+}
+
+/* pre-wrap keeps the line breaks people type; anywhere stops long words from overflowing the card */
+.MuiTypography-root.comment-body {
+    margin-top: 2px;
+    font-size: 13px;
+    color: #2C2C2A;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.MuiButton-root.comment-reply-button {
+    min-width: 0;
+    padding: 0;
+    margin-top: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: none;
+    color: #D85A30;
+}
+
+.MuiButton-root.comment-reply-button:hover {
+    background-color: transparent;
+    text-decoration: underline;
+}
+
+/* Replies sit under their parent with a thin rail, so a thread reads at a glance */
+.comment-replies {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 10px 0 0 13px;
+    padding-left: 14px;
+    border-left: 2px solid #F1EFE8;
+}
+
+/* Stop indenting after three levels so deep threads stay readable on a phone */
+.comment-replies .comment-replies .comment-replies {
+    margin-left: 0;
+    padding-left: 10px;
+}
+
+/* Composer */
+.comment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 12px;
+    border-top: 1px solid #F1EFE8;
+}
+
+.comment-replying-to {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.MuiTypography-root.comment-replying-to-text {
+    font-size: 12px;
+    color: #5F5E5A;
+}
+
+.MuiButton-root.comment-cancel-reply {
+    min-width: 0;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: none;
+    color: #5F5E5A;
+}
+
+.comment-input .MuiOutlinedInput-root {
+    border-radius: 12px;
+    font-size: 13px;
+    background-color: white;
+}
+
+.comment-form-footer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.MuiTypography-root.comment-counter {
+    margin-right: auto;
+    font-size: 11px;
+    color: #5F5E5A;
+}
+
+.MuiTypography-root.comment-counter--over {
+    font-weight: 700;
+    color: #D32F2F;
+}
+
+.MuiButton-root.comment-submit-button {
+    padding-left: 16px;
+    padding-right: 16px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    border-radius: 999px;
+    background-color: #2C2C2A;
+    color: #F1EFE8;
+}
+
+.MuiButton-root.comment-submit-button:hover {
+    background-color: #444441;
+}
+
+.MuiButton-root.comment-submit-button.Mui-disabled {
+    background-color: #EDEBE4;
+    color: #9A988F;
+}

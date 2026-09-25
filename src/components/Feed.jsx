@@ -322,6 +322,8 @@ export default function Feed() {
                                 {posts.map((post, index) => (
                                     <SinglePost
                                         key={`${post.id}-${index}`}
+                                        postId={post.id}
+                                        canComment={Boolean(currentUserId)}
                                         title={post.title}
                                         author={post.author_name || userDetails?.name || `User ${post.userId}`}
                                         body={post.body}
@@ -337,6 +339,8 @@ export default function Feed() {
                                 {posts.map((post, index) => (
                                     <SinglePost
                                         key={`${post.id}-${index}`}
+                                        postId={post.id}
+                                        canComment={Boolean(currentUserId)}
                                         title={post.title}
                                         author={post.author_name || `User ${post.userId}`}
                                         body={post.body}

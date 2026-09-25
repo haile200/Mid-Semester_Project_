@@ -4,48 +4,21 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import DOMPurify from 'dompurify';
 import Avatar from './Avatar';
+import CommentThread from './CommentThread';
 import { climbingBadges } from '../theme';
+import { getTimeAgo } from '../timeAgo';
 import './SinglePost.css';
 
-export default function SinglePost({ title, author, body, imageUrl, createdAt }) {
-    // "Share beta" is climber-speak for route advice - local UI only for now
-    const [isBetaOpen, setIsBetaOpen] = useState(false);
-    const [betaText, setBetaText] = useState('');
-    const [betaSent, setBetaSent] = useState(false);
+export default function SinglePost({ postId, title, author, body, imageUrl, createdAt, canComment }) {
+    // "Beta" is climber-speak for route advice; the thread loads only when opened.
+    const [isThreadOpen, setIsThreadOpen] = useState(false);
 
     const badges = climbingBadges(`${title}|${author}`);
     const disciplineClass = `post-badge--${badges.discipline.label.toLowerCase().replace(/\s+/g, '-')}`;
-
-    const getTimeAgo = (dateString) => {
-        if (!dateString) return '';
-        const postDate = new Date(dateString.endsWith('GMT') ? dateString : dateString + 'Z');
-        const now = new Date();
-        const seconds = Math.floor((now - postDate) / 1000);
-
-        if (seconds < 60) return 'Just now';
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
-        const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
-        const days = Math.floor(hours / 24);
-        if (days < 30) return `${days} day${days !== 1 ? 's' : ''} ago`;
-        const months = Math.floor(days / 30);
-        if (months < 12) return `${months} month${months !== 1 ? 's' : ''} ago`;
-        const years = Math.floor(months / 12);
-        return `${years} year${years !== 1 ? 's' : ''} ago`;
-    };
-
-    const handleSendBeta = () => {
-        if (!betaText.trim()) return;
-        setBetaText('');
-        setIsBetaOpen(false);
-        setBetaSent(true);
-    };
 
     return (
         // Chalk-white card with a soft stone shadow - modern and calm like a gym wall
@@ -101,36 +74,17 @@ export default function SinglePost({ title, author, body, imageUrl, createdAt })
 
             <Box className="post-footer">
                 <Box className="post-footer-spacer" />
-                {betaSent ? (
-                    <Typography className="beta-shared-message">
-                        Beta shared with {author ? author.split(' ')[0] : 'the author'}
-                    </Typography>
-                ) : (
-                    <Button
-                        startIcon={<LightbulbOutlinedIcon />}
-                        onClick={() => setIsBetaOpen((open) => !open)}
-                        className="beta-button"
-                    >
-                        Share beta
-                    </Button>
-                )}
+                <Button
+                    startIcon={<LightbulbOutlinedIcon />}
+                    onClick={() => setIsThreadOpen((open) => !open)}
+                    className="beta-button"
+                    data-cy="beta-toggle"
+                >
+                    {isThreadOpen ? 'Hide beta' : 'Show beta'}
+                </Button>
             </Box>
 
-            {isBetaOpen && !betaSent && (
-                <Box className="beta-form">
-                    <TextField
-                        fullWidth
-                        size="small"
-                        placeholder="Share your beta - heel hooks, rests, sequences..."
-                        value={betaText}
-                        onChange={(e) => setBetaText(e.target.value)}
-                        className="beta-input"
-                    />
-                    <Button onClick={handleSendBeta} className="beta-send-button">
-                        Send
-                    </Button>
-                </Box>
-            )}
+            {isThreadOpen && <CommentThread postId={postId} canComment={canComment} />}
         </Card>
     );
 }

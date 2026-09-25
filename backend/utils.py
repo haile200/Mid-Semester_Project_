@@ -29,6 +29,23 @@ def parse_pagination(args):
     return start, min(limit, MAX_PAGE_SIZE)
 
 
+MAX_COMMENT_LENGTH = 1000
+
+
+def clean_comment_body(body):
+    """Returns the trimmed comment text. Raises ValueError if it is not text, empty, or too long."""
+    if body is None:
+        body = ''
+    if not isinstance(body, str):
+        raise ValueError('Invalid input types')
+    body = body.strip()
+    if not body:
+        raise ValueError('Comment cannot be empty')
+    if len(body) > MAX_COMMENT_LENGTH:
+        raise ValueError(f'Comment must be {MAX_COMMENT_LENGTH} characters or fewer')
+    return body
+
+
 def hash_password(plain_password):
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(plain_password.encode('utf-8'), salt).decode('utf-8')

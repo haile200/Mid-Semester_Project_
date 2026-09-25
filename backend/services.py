@@ -4,13 +4,28 @@ from contextlib import closing
 import mysql.connector
 
 from db import get_db
-from utils import fetchall_dict, fetchone_dict, hash_password, sanitize_post_html, verify_password
+from utils import (
+    clean_comment_body,
+    fetchall_dict,
+    fetchone_dict,
+    hash_password,
+    sanitize_post_html,
+    verify_password,
+)
 
 POST_COLUMNS = """
     posts.id, posts.title, posts.body, posts.image_url, posts.created_at,
     users.id AS userId,
     users.name AS author_name,
     users.profile_picture AS author_profile_picture
+"""
+
+COMMENT_COLUMNS = """
+    comments.id, comments.post_id, comments.parent_id, comments.body, comments.created_at,
+    users.id AS userId,
+    users.name AS author_name,
+    users.profile_picture AS author_profile_picture,
+    users.is_bot AS author_is_bot
 """
 
 
@@ -152,6 +167,66 @@ def create_post(author_id, title, body, image_url=None):
         )
         conn.commit()
         return cursor.lastrowid
+
+
+# ---- Comments ----
+
+def _as_comment(row):
+    row['author_is_bot'] = bool(row['author_is_bot'])
+    return row
+
+
+def post_exists(post_id):
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))
+        return cursor.fetchone() is not None
+
+
+def list_comments(post_id, start, limit):
+    rows = _fetch_all(
+        f"""
+        SELECT {COMMENT_COLUMNS}
+        FROM comments
+        JOIN users ON comments.author_id = users.id
+        WHERE comments.post_id = %s
+        ORDER BY comments.created_at, comments.id
+        LIMIT %s OFFSET %s
+        """,
+        (post_id, limit, start)
+    )
+    return [_as_comment(row) for row in rows]
+
+
+def create_comment(post_id, author_id, body, parent_id=None):
+    """Store a comment or reply and return it.
+
+    Raises ValueError for invalid text or a parent outside this post, LookupError if the post is missing.
+    """
+    body = clean_comment_body(body)
+
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))
+        if cursor.fetchone() is None:
+            raise LookupError('Post not found')
+
+        if parent_id is not None:
+            cursor.execute("SELECT post_id FROM comments WHERE id = %s", (parent_id,))
+            parent = cursor.fetchone()
+            if parent is None or parent[0] != post_id:
+                raise ValueError('Parent comment not found on this post')
+
+        cursor.execute(
+            "INSERT INTO comments (post_id, author_id, parent_id, body) VALUES (%s, %s, %s, %s)",
+            (post_id, author_id, parent_id, body)
+        )
+        comment_id = cursor.lastrowid
+        conn.commit()
+
+        cursor.execute(
+            f"SELECT {COMMENT_COLUMNS} FROM comments JOIN users ON comments.author_id = users.id WHERE comments.id = %s",
+            (comment_id,)
+        )
+        return _as_comment(fetchone_dict(cursor))
 
 
 # ---- Profiles and the social graph ----
