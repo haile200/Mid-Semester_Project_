@@ -1,5 +1,6 @@
 import html
 import re
+import secrets
 
 import bcrypt
 import nh3
@@ -50,6 +51,13 @@ def clean_comment_body(body):
 def hash_password(plain_password):
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(plain_password.encode('utf-8'), salt).decode('utf-8')
+
+
+def unusable_password_hash():
+    # bcrypt's slowness protects guessable passwords; this secret is 256 random bits that are
+    # never stored, so the minimum cost is enough and keeps seeding fast.
+    secret = secrets.token_urlsafe(32).encode('utf-8')
+    return bcrypt.hashpw(secret, bcrypt.gensalt(rounds=4)).decode('utf-8')
 
 
 def verify_password(plain_password, hashed_password):

@@ -12,6 +12,7 @@ from utils import (
     hash_password,
     html_to_text,
     sanitize_post_html,
+    unusable_password_hash,
     verify_password,
 )
 
@@ -64,6 +65,34 @@ def create_user(name, email, password):
         )
         conn.commit()
         return cursor.lastrowid
+
+
+def upsert_bot(name, email, bio, personality):
+    """Create or update a bot account keyed by email. Returns (user_id, created).
+
+    Raises ValueError if the email belongs to a human account.
+    """
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT id, is_bot FROM users WHERE email = %s", (email,))
+        existing = cursor.fetchone()
+
+        if existing and not existing[1]:
+            raise ValueError(f'{email} belongs to a human account')
+
+        if existing:
+            cursor.execute(
+                "UPDATE users SET name = %s, bio = %s, personality = %s WHERE id = %s",
+                (name, bio, personality, existing[0])
+            )
+            conn.commit()
+            return existing[0], False
+
+        cursor.execute(
+            "INSERT INTO users (name, email, password, bio, is_bot, personality) VALUES (%s, %s, %s, %s, 1, %s)",
+            (name, email, unusable_password_hash(), bio, personality)
+        )
+        conn.commit()
+        return cursor.lastrowid, True
 
 
 def authenticate(email, password):

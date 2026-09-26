@@ -188,10 +188,12 @@ class OfflineBrain(Brain):
         return [ideas[(start + offset) % len(ideas)] for offset in range(3)]
 
     def check_toxicity(self, text):
-        # Matching whole words on padded text keeps "moron" from matching inside "oxymoron".
-        padded = f" {' '.join(_words(text))} "
-        if any(f' {term} ' in padded for term in BLOCKED_TERMS):
-            return ToxicityResult(allowed=False, reason='Contains blocked language')
+        # Whole words keep "moron" from matching inside "oxymoron"; checking each sentence
+        # separately keeps "a move you hate. You will..." from reading as "hate you".
+        for sentence in re.split(r'[.!?;\n]+', text):
+            padded = f" {' '.join(_words(sentence))} "
+            if any(f' {term} ' in padded for term in BLOCKED_TERMS):
+                return ToxicityResult(allowed=False, reason='Contains blocked language')
         return ToxicityResult(allowed=True)
 
     def write_post(self, personality, seed):

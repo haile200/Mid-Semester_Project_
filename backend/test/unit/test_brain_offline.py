@@ -74,6 +74,20 @@ def test_check_toxicity_blocks_multi_word_phrases():
     assert result.allowed is False
 
 
+@pytest.mark.parametrize('text, allowed', [
+    ('That is the move you hate. You will love the top.', True),
+    ('I hate you.', False),
+])
+def test_check_toxicity_does_not_join_phrases_across_sentences(text, allowed):
+    # Arrange: the parameters above
+
+    # Act
+    result = brain.check_toxicity(text)
+
+    # Assert
+    assert result.allowed is allowed
+
+
 def test_check_toxicity_does_not_match_inside_other_words():
     # Arrange: "oxymoron" contains a blocked word but is not an insult.
     text = 'Calling that route a warm-up is an oxymoron.'
