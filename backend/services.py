@@ -1,5 +1,6 @@
 import secrets
 from contextlib import closing
+from datetime import datetime
 
 import mysql.connector
 
@@ -276,6 +277,95 @@ def create_comment(post_id, author_id, body, parent_id=None):
             (comment_id,)
         )
         return _as_comment(fetchone_dict(cursor))
+
+
+# ---- Bot worker ----
+
+def _as_datetime(value):
+    # MySQL returns datetime objects; SQLite, used by the integration tests, returns text.
+    if value is None or isinstance(value, datetime):
+        return value
+    return datetime.fromisoformat(str(value))
+
+
+def database_now():
+    """The database's own clock, so comparisons with created_at never mix two clocks."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT CURRENT_TIMESTAMP")
+        return _as_datetime(cursor.fetchone()[0])
+
+
+def list_bot_activity(since):
+    """Every bot with its last action time and the number of posts and comments since `since`."""
+    rows = _fetch_all(
+        """
+        SELECT
+            users.id,
+            users.name,
+            users.personality,
+            (SELECT MAX(created_at) FROM posts WHERE author_id = users.id) AS last_post_at,
+            (SELECT MAX(created_at) FROM comments WHERE author_id = users.id) AS last_comment_at,
+            (SELECT COUNT(*) FROM posts WHERE author_id = users.id AND created_at >= %s)
+                + (SELECT COUNT(*) FROM comments WHERE author_id = users.id AND created_at >= %s) AS recent_actions
+        FROM users
+        WHERE users.is_bot = 1
+        ORDER BY users.id
+        """,
+        (since, since)
+    )
+    for row in rows:
+        times = [t for t in (_as_datetime(row.pop('last_post_at')), _as_datetime(row.pop('last_comment_at'))) if t]
+        row['last_action_at'] = max(times) if times else None
+    return rows
+
+
+def list_comment_targets(bot_id, limit):
+    """Recent posts by others that the bot has not commented on yet."""
+    return _fetch_all(
+        """
+        SELECT posts.id, posts.title, posts.body
+        FROM posts
+        WHERE posts.author_id <> %s
+          AND NOT EXISTS (
+              SELECT 1 FROM comments
+              WHERE comments.post_id = posts.id AND comments.author_id = %s AND comments.parent_id IS NULL
+          )
+        ORDER BY posts.id DESC
+        LIMIT %s
+        """,
+        (bot_id, bot_id, limit)
+    )
+
+
+def list_reply_targets(bot_id, limit):
+    """Recent comments by others that the bot has not replied to yet."""
+    return _fetch_all(
+        """
+        SELECT comments.id, comments.post_id, comments.body
+        FROM comments
+        WHERE comments.author_id <> %s
+          AND NOT EXISTS (
+              SELECT 1 FROM comments AS replies
+              WHERE replies.parent_id = comments.id AND replies.author_id = %s
+          )
+        ORDER BY comments.id DESC
+        LIMIT %s
+        """,
+        (bot_id, bot_id, limit)
+    )
+
+
+def comment_depth(comment_id):
+    """0 for a top-level comment, 1 for a reply to it, and so on."""
+    depth = 0
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        while True:
+            cursor.execute("SELECT parent_id FROM comments WHERE id = %s", (comment_id,))
+            parent_id = cursor.fetchone()[0]
+            if parent_id is None:
+                return depth
+            depth += 1
+            comment_id = parent_id
 
 
 # ---- Profiles and the social graph ----
