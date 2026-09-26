@@ -3,15 +3,29 @@ from contextlib import closing
 
 import mysql.connector
 
+from brain import get_brain
 from db import get_db
 from utils import (
     clean_comment_body,
     fetchall_dict,
     fetchone_dict,
     hash_password,
+    html_to_text,
     sanitize_post_html,
     verify_password,
 )
+
+
+class ContentRejected(ValueError):
+    """The brain refused to let the text be published."""
+
+
+def _ensure_publishable(text):
+    # Runs before any database connection opens, so a slow check never holds one.
+    result = get_brain().check_toxicity(text)
+    if not result.allowed:
+        reason = result.reason or 'Rejected by moderation'
+        raise ContentRejected(f'Not published: {reason[0].lower()}{reason[1:]}')
 
 POST_COLUMNS = """
     posts.id, posts.title, posts.body, posts.image_url, posts.created_at,
@@ -154,11 +168,15 @@ def list_posts(start, limit, author_id=None):
 
 
 def create_post(author_id, title, body, image_url=None):
-    """Sanitize and store a post. Raises ValueError if title or body is empty after cleaning."""
+    """Sanitize and store a post.
+
+    Raises ValueError if title or body is empty after cleaning, ContentRejected if the brain blocks it.
+    """
     title = (title or '').strip()
     body = sanitize_post_html(body or '').strip()
     if not title or not body:
         raise ValueError('Title and body are required')
+    _ensure_publishable(f'{title}\n{html_to_text(body)}')
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute(
@@ -200,9 +218,11 @@ def list_comments(post_id, start, limit):
 def create_comment(post_id, author_id, body, parent_id=None):
     """Store a comment or reply and return it.
 
-    Raises ValueError for invalid text or a parent outside this post, LookupError if the post is missing.
+    Raises ValueError for invalid text or a parent outside this post, ContentRejected if the brain
+    blocks it, and LookupError if the post is missing.
     """
     body = clean_comment_body(body)
+    _ensure_publishable(body)
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))

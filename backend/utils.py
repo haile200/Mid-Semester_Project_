@@ -1,3 +1,4 @@
+import html
 import re
 
 import bcrypt
@@ -68,6 +69,16 @@ def sanitize_post_html(html):
         url_schemes=POST_URL_SCHEMES,
         link_rel='noopener noreferrer',
     )
+
+
+BLOCK_TAG_RE = re.compile(r'</?(?:p|br|div|li|ul|ol|h[1-6])\b[^>]*>', re.IGNORECASE)
+TAG_RE = re.compile(r'<[^>]+>')
+
+
+def html_to_text(markup):
+    # Block tags become spaces; inline tags vanish so a word split by <strong> reads as one word.
+    text = TAG_RE.sub('', BLOCK_TAG_RE.sub(' ', markup))
+    return ' '.join(html.unescape(text).split())
 
 
 def session_cookie_flags(secure):
