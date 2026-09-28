@@ -82,7 +82,7 @@ def test_feed_caps_oversized_limit_before_querying(mock_get_db):
 
     # Assert
     assert response.status_code == 200
-    assert cursor.queries[0][1] == (MAX_PAGE_SIZE, 0)
+    assert cursor.queries[0][1] == (None, MAX_PAGE_SIZE, 0)
 
 
 @patch('services.get_db')

@@ -47,11 +47,14 @@ def _ensure_publishable(text, strict=False):
         reason = result.reason or 'Rejected by moderation'
         raise ContentRejected(f'Not published: {reason[0].lower()}{reason[1:]}')
 
+# The single %s is the viewer's id (or NULL for a visitor), so every query using this passes it first.
 POST_COLUMNS = """
     posts.id, posts.title, posts.body, posts.image_url, posts.created_at,
     users.id AS userId,
     users.name AS author_name,
-    users.profile_picture AS author_profile_picture
+    users.profile_picture AS author_profile_picture,
+    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likeCount,
+    EXISTS (SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s) AS likedByMe
 """
 
 COMMENT_COLUMNS = """
@@ -186,20 +189,28 @@ def delete_session(token):
 
 # ---- Posts and feeds ----
 
-def list_feed(start, limit):
-    return _fetch_all(
+def _post_rows(query, params):
+    # EXISTS comes back as 0/1 from the database; the API promises a real boolean.
+    rows = _fetch_all(query, params)
+    for row in rows:
+        row['likedByMe'] = bool(row['likedByMe'])
+    return rows
+
+
+def list_feed(start, limit, viewer_id=None):
+    return _post_rows(
         f"""
         SELECT {POST_COLUMNS}
         FROM posts
         JOIN users ON posts.author_id = users.id
         ORDER BY posts.id DESC LIMIT %s OFFSET %s
         """,
-        (limit, start)
+        (viewer_id, limit, start)
     )
 
 
 def list_following_feed(viewer_id, start, limit):
-    return _fetch_all(
+    return _post_rows(
         f"""
         SELECT {POST_COLUMNS}
         FROM posts
@@ -208,13 +219,13 @@ def list_following_feed(viewer_id, start, limit):
         WHERE followers.follower_id = %s
         ORDER BY posts.id DESC LIMIT %s OFFSET %s
         """,
-        (viewer_id, limit, start)
+        (viewer_id, viewer_id, limit, start)
     )
 
 
-def list_posts(start, limit, author_id=None):
+def list_posts(start, limit, author_id=None, viewer_id=None):
     query = f"SELECT {POST_COLUMNS} FROM posts JOIN users ON posts.author_id = users.id"
-    params = []
+    params = [viewer_id]
 
     if author_id is not None:
         query += " WHERE posts.author_id = %s"
@@ -222,7 +233,7 @@ def list_posts(start, limit, author_id=None):
 
     query += " ORDER BY posts.id DESC LIMIT %s OFFSET %s"
     params.extend([limit, start])
-    return _fetch_all(query, tuple(params))
+    return _post_rows(query, tuple(params))
 
 
 def create_post(author_id, title, body, image_url=None, strict=False):
@@ -508,7 +519,7 @@ def database_now():
 
 
 def list_bot_activity(since):
-    """Every bot with its last action time and the number of posts and comments since `since`."""
+    """Every bot with its last action time and the number of posts, comments and likes since `since`."""
     rows = _fetch_all(
         """
         SELECT
@@ -517,18 +528,36 @@ def list_bot_activity(since):
             users.personality,
             (SELECT MAX(created_at) FROM posts WHERE author_id = users.id) AS last_post_at,
             (SELECT MAX(created_at) FROM comments WHERE author_id = users.id) AS last_comment_at,
+            (SELECT MAX(created_at) FROM likes WHERE user_id = users.id) AS last_like_at,
             (SELECT COUNT(*) FROM posts WHERE author_id = users.id AND created_at >= %s)
-                + (SELECT COUNT(*) FROM comments WHERE author_id = users.id AND created_at >= %s) AS recent_actions
+                + (SELECT COUNT(*) FROM comments WHERE author_id = users.id AND created_at >= %s)
+                + (SELECT COUNT(*) FROM likes WHERE user_id = users.id AND created_at >= %s) AS recent_actions
         FROM users
         WHERE users.is_bot = 1 AND users.banned_at IS NULL
         ORDER BY users.id
         """,
-        (since, since)
+        (since, since, since)
     )
     for row in rows:
-        times = [t for t in (_as_datetime(row.pop('last_post_at')), _as_datetime(row.pop('last_comment_at'))) if t]
+        times = [_as_datetime(row.pop(key)) for key in ('last_post_at', 'last_comment_at', 'last_like_at')]
+        times = [t for t in times if t]
         row['last_action_at'] = max(times) if times else None
     return rows
+
+
+def list_like_targets(bot_id, limit):
+    """Recent posts by others that the bot has not liked yet."""
+    return _fetch_all(
+        """
+        SELECT posts.id, posts.title
+        FROM posts
+        WHERE posts.author_id <> %s
+          AND NOT EXISTS (SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s)
+        ORDER BY posts.id DESC
+        LIMIT %s
+        """,
+        (bot_id, bot_id, limit)
+    )
 
 
 def list_comment_targets(bot_id, limit):
@@ -656,6 +685,102 @@ def follow_user(follower_id, following_id):
             return False
         conn.commit()
         return True
+
+
+def _like_count(cursor, post_id):
+    cursor.execute("SELECT COUNT(*) FROM likes WHERE post_id = %s", (post_id,))
+    return cursor.fetchone()[0]
+
+
+def like_post(user_id, post_id):
+    """Like a post; safe to repeat. Returns the post's like count. Raises LookupError if it is missing."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))
+        if cursor.fetchone() is None:
+            raise LookupError('Post not found')
+        cursor.execute("SELECT 1 FROM likes WHERE user_id = %s AND post_id = %s", (user_id, post_id))
+        if cursor.fetchone() is None:
+            cursor.execute("INSERT INTO likes (user_id, post_id) VALUES (%s, %s)", (user_id, post_id))
+            conn.commit()
+        return _like_count(cursor, post_id)
+
+
+def unlike_post(user_id, post_id):
+    """Remove a like; safe to repeat. Returns the post's like count. Raises LookupError if it is missing."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))
+        if cursor.fetchone() is None:
+            raise LookupError('Post not found')
+        cursor.execute("DELETE FROM likes WHERE user_id = %s AND post_id = %s", (user_id, post_id))
+        conn.commit()
+        return _like_count(cursor, post_id)
+
+
+def user_exists(user_id):
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM users WHERE id = %s", (user_id,))
+        return cursor.fetchone() is not None
+
+
+def _people(query, params):
+    rows = _fetch_all(query, params)
+    for row in rows:
+        row['is_bot'] = bool(row['is_bot'])
+    return rows
+
+
+def list_followers(user_id, start, limit):
+    """People who follow the user, newest first."""
+    return _people(
+        """
+        SELECT users.id, users.name, users.profile_picture, users.is_bot
+        FROM followers JOIN users ON users.id = followers.follower_id
+        WHERE followers.following_id = %s
+        ORDER BY followers.created_at DESC, users.id
+        LIMIT %s OFFSET %s
+        """,
+        (user_id, limit, start)
+    )
+
+
+def list_following(user_id, start, limit):
+    """People the user follows, newest first."""
+    return _people(
+        """
+        SELECT users.id, users.name, users.profile_picture, users.is_bot
+        FROM followers JOIN users ON users.id = followers.following_id
+        WHERE followers.follower_id = %s
+        ORDER BY followers.created_at DESC, users.id
+        LIMIT %s OFFSET %s
+        """,
+        (user_id, limit, start)
+    )
+
+
+def suggest_users(viewer_id, limit):
+    """People the viewer may know: ranked by how many of the viewer's follows also follow them,
+    then by popularity. Never the viewer, people they already follow, or banned accounts."""
+    return _people(
+        """
+        SELECT
+            candidate.id, candidate.name, candidate.profile_picture, candidate.is_bot,
+            COUNT(DISTINCT mine.following_id) AS mutualCount,
+            (SELECT COUNT(*) FROM followers AS fans WHERE fans.following_id = candidate.id) AS followersCount
+        FROM users AS candidate
+        LEFT JOIN followers AS theirs ON theirs.following_id = candidate.id
+        LEFT JOIN followers AS mine ON mine.follower_id = %s AND mine.following_id = theirs.follower_id
+        WHERE candidate.id <> %s
+          AND candidate.banned_at IS NULL
+          AND NOT EXISTS (
+              SELECT 1 FROM followers AS already
+              WHERE already.follower_id = %s AND already.following_id = candidate.id
+          )
+        GROUP BY candidate.id, candidate.name, candidate.profile_picture, candidate.is_bot
+        ORDER BY mutualCount DESC, followersCount DESC, candidate.id
+        LIMIT %s
+        """,
+        (viewer_id, viewer_id, viewer_id, limit)
+    )
 
 
 def unfollow_user(follower_id, following_id):

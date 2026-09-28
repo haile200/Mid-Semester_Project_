@@ -30,7 +30,8 @@ def test_list_posts_filters_by_author_when_given(mock_get_db):
     # Assert
     query, params = cursor.queries[0]
     assert 'WHERE posts.author_id = %s' in query
-    assert params == (7, 10, 20)
+    # The viewer comes first: it feeds likedByMe in the column list.
+    assert params == (None, 7, 10, 20)
 
 
 @patch('services.get_db')

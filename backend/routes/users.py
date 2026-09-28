@@ -17,6 +17,35 @@ def get_users():
     return jsonify(services.list_users(start, limit, search)), 200
 
 
+MAX_SUGGESTIONS = 20
+
+
+@users_bp.route('/users/suggestions', methods=['GET'])
+@login_required
+def get_suggestions():
+    try:
+        limit = int(request.args.get('limit', 5))
+    except ValueError:
+        limit = 0
+    if not 1 <= limit <= MAX_SUGGESTIONS:
+        return jsonify({'message': f'limit must be between 1 and {MAX_SUGGESTIONS}'}), 400
+    return jsonify(services.suggest_users(g.user_id, limit)), 200
+
+
+@users_bp.route('/users/<int:user_id>/followers', methods=['GET'])
+@users_bp.route('/users/<int:user_id>/following', methods=['GET'])
+def get_follow_list(user_id):
+    try:
+        start, limit = parse_pagination(request.args)
+    except ValueError:
+        return jsonify({'message': 'Invalid query parameters'}), 400
+    if not services.user_exists(user_id):
+        return jsonify({'message': 'User not found'}), 404
+
+    list_people = services.list_followers if request.path.endswith('/followers') else services.list_following
+    return jsonify(list_people(user_id, start, limit)), 200
+
+
 @users_bp.route('/users/<int:user_id>', methods=['GET'])
 def get_user_by_id(user_id):
     user = services.get_user_profile(user_id, current_user_id())

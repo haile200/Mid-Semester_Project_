@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 
 import services
-from routes.auth import login_required
+from routes.auth import current_user_id, login_required
 from utils import parse_pagination
 
 feed_bp = Blueprint('feed', __name__, url_prefix='/api')
@@ -23,4 +23,4 @@ def get_feed():
         start, limit = parse_pagination(request.args)
     except ValueError:
         return jsonify({'message': 'Invalid query parameters'}), 400
-    return jsonify(services.list_feed(start, limit)), 200
+    return jsonify(services.list_feed(start, limit, current_user_id())), 200

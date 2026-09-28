@@ -18,10 +18,12 @@ def test_get_feed_returns_posts(mock_get_db):
             ('userId',),
             ('author_name',),
             ('author_profile_picture',),
+            ('likeCount',),
+            ('likedByMe',),
         ),
         rows=[
-            (1, 'Title 1', 'Body 1', None, '2026-01-01', 10, 'Alice', None),
-            (2, 'Title 2', 'Body 2', 'http://img', '2026-01-02', 11, 'Bob', None),
+            (1, 'Title 1', 'Body 1', None, '2026-01-01', 10, 'Alice', None, 4, 1),
+            (2, 'Title 2', 'Body 2', 'http://img', '2026-01-02', 11, 'Bob', None, 0, 0),
         ]
     )
     mock_get_db.return_value = DummyConnection(cursor)
@@ -40,6 +42,8 @@ def test_get_feed_returns_posts(mock_get_db):
             'userId': 10,
             'author_name': 'Alice',
             'author_profile_picture': None,
+            'likeCount': 4,
+            'likedByMe': True,
         },
         {
             'id': 2,
@@ -50,6 +54,8 @@ def test_get_feed_returns_posts(mock_get_db):
             'userId': 11,
             'author_name': 'Bob',
             'author_profile_picture': None,
+            'likeCount': 0,
+            'likedByMe': False,
         },
     ]
 
@@ -73,9 +79,11 @@ def test_get_following_feed_returns_posts(mock_get_db, mock_get_user):
                 ('userId',),
                 ('author_name',),
                 ('author_profile_picture',),
+                ('likeCount',),
+                ('likedByMe',),
             )
             self._data = [
-                (3, 'Followed Post', 'Body', None, '2026-01-03', 12, 'Carol', None),
+                (3, 'Followed Post', 'Body', None, '2026-01-03', 12, 'Carol', None, 2, 0),
             ]
 
         def execute(self, query, params=None):
@@ -112,5 +120,7 @@ def test_get_following_feed_returns_posts(mock_get_db, mock_get_user):
             'userId': 12,
             'author_name': 'Carol',
             'author_profile_picture': None,
+            'likeCount': 2,
+            'likedByMe': False,
         }
     ]

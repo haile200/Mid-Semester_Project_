@@ -21,7 +21,7 @@ import services
 from brain import get_brain
 from utils import html_to_text
 
-ACTIONS = ('post', 'comment', 'reply')
+ACTIONS = ('post', 'comment', 'reply', 'like')
 CANDIDATE_LIMIT = 20
 IDLE_POOL = 3
 
@@ -33,7 +33,9 @@ class Pacing:
     cooldown_seconds: int = 600
     daily_cap: int = 12
     max_reply_depth: int = 3
-    weights: Dict[str, float] = field(default_factory=lambda: {'post': 0.25, 'comment': 0.45, 'reply': 0.30})
+    # A like needs no model call, so it keeps bots active when the Gemini quota is used up.
+    weights: Dict[str, float] = field(
+        default_factory=lambda: {'post': 0.20, 'comment': 0.35, 'reply': 0.25, 'like': 0.20})
 
 
 @dataclass(frozen=True)
@@ -134,11 +136,20 @@ def do_reply(bot, brain, rng, pacing, seed):
     raise NothingToDo('no comment to reply to within the depth limit')
 
 
-HANDLERS = {'post': do_post, 'comment': do_comment, 'reply': do_reply}
+def do_like(bot, brain, rng, pacing, seed):
+    targets = services.list_like_targets(bot.id, CANDIDATE_LIMIT)
+    if not targets:
+        raise NothingToDo('no posts left to like')
+    target = rng.choice(targets)
+    count = services.like_post(bot.id, target['id'])
+    return f'post={target["id"]} -> liked ({count} like{"" if count == 1 else "s"})'
+
+
+HANDLERS = {'post': do_post, 'comment': do_comment, 'reply': do_reply, 'like': do_like}
 
 # Each action falls back to a simpler one. A post never lacks a target, so no tick is wasted,
 # and a brand-new site fills with posts until there is something to talk about.
-FALLBACK = {'reply': 'comment', 'comment': 'post'}
+FALLBACK = {'reply': 'comment', 'comment': 'post', 'like': 'post'}
 
 
 def run_tick(tick, brain, rng, pacing, log):

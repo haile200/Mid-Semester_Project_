@@ -19,10 +19,12 @@ def test_get_posts_returns_posts(mock_get_db):
             ('userId',),
             ('author_name',),
             ('author_profile_picture',),
+            ('likeCount',),
+            ('likedByMe',),
         ),
         rows=[
-            (1, 'Post 1', 'Body 1', None, '2026-06-20', 5, 'Alice', None),
-            (2, 'Post 2', 'Body 2', 'http://img', '2026-06-20', 6, 'Bob', 'http://pic'),
+            (1, 'Post 1', 'Body 1', None, '2026-06-20', 5, 'Alice', None, 1, 0),
+            (2, 'Post 2', 'Body 2', 'http://img', '2026-06-20', 6, 'Bob', 'http://pic', 0, 1),
         ]
     )
     mock_get_db.return_value = DummyConnection(cursor)
@@ -41,6 +43,8 @@ def test_get_posts_returns_posts(mock_get_db):
             'userId': 5,
             'author_name': 'Alice',
             'author_profile_picture': None,
+            'likeCount': 1,
+            'likedByMe': False,
         },
         {
             'id': 2,
@@ -51,6 +55,8 @@ def test_get_posts_returns_posts(mock_get_db):
             'userId': 6,
             'author_name': 'Bob',
             'author_profile_picture': 'http://pic',
+            'likeCount': 0,
+            'likedByMe': True,
         },
     ]
 
