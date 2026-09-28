@@ -136,6 +136,10 @@ def do_reply(bot, brain, rng, pacing, seed):
 
 HANDLERS = {'post': do_post, 'comment': do_comment, 'reply': do_reply}
 
+# Each action falls back to a simpler one. A post never lacks a target, so no tick is wasted,
+# and a brand-new site fills with posts until there is something to talk about.
+FALLBACK = {'reply': 'comment', 'comment': 'post'}
+
 
 def run_tick(tick, brain, rng, pacing, log):
     """Runs one bot action and logs one line. Returns the outcome."""
@@ -151,23 +155,31 @@ def run_tick(tick, brain, rng, pacing, log):
         return 'skip'
 
     action = choose_action(rng, pacing.weights)
-    head = f'{prefix} bot={bot.name:<20} action={action:<8}'
-    try:
-        result = HANDLERS[action](bot, brain, rng, pacing, rng.randrange(1_000_000))
-    except NothingToDo as reason:
-        log(f'{head} -> skipped ({reason})')
-        return 'nothing'
-    except services.ContentRejected as error:
-        log(f'{head} -> skipped (toxicity: {error})')
-        return 'rejected'
-    except services.ModerationUnavailable as error:
-        log(f'{head} -> skipped (moderation unavailable: {error})')
-        return 'moderation-error'
-    except BrainUnavailable as error:
-        log(f'{head} -> skipped (brain unavailable: {error})')
-        return 'brain-error'
+    seed = rng.randrange(1_000_000)
+    fell_back_because = []
 
-    log(f'{head} {result}')
+    def line(text):
+        note = f'  [fell back: {"; ".join(fell_back_because)}]' if fell_back_because else ''
+        return f'{prefix} bot={bot.name:<20} action={action:<8} {text}{note}'
+
+    while True:
+        try:
+            result = HANDLERS[action](bot, brain, rng, pacing, seed)
+            break
+        except NothingToDo as reason:
+            fell_back_because.append(str(reason))
+            action = FALLBACK[action]
+        except services.ContentRejected as error:
+            log(line(f'-> skipped (toxicity: {error})'))
+            return 'rejected'
+        except services.ModerationUnavailable as error:
+            log(line(f'-> skipped (moderation unavailable: {error})'))
+            return 'moderation-error'
+        except BrainUnavailable as error:
+            log(line(f'-> skipped (brain unavailable: {error})'))
+            return 'brain-error'
+
+    log(line(result))
     return action
 
 
@@ -207,6 +219,9 @@ def main(argv=None):
     args, pacing = parse_args(argv)
     # logging writes each line out immediately; print() output can sit in a buffer when not on a terminal.
     logging.basicConfig(level=logging.INFO, format='%(asctime)s  %(message)s', datefmt='%H:%M:%S', stream=sys.stdout)
+    # The Gemini SDK and its HTTP client log every request at INFO; keep only their warnings.
+    for noisy in ('google_genai', 'httpx'):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     log = logging.getLogger('bots.worker').info
 
     rng = random.Random(args.seed)

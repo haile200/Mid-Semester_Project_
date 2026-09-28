@@ -153,8 +153,8 @@ def test_bot_never_comments_twice_on_the_same_post(db):
     # Act
     outcome, logs = tick(pacing)
 
-    # Assert
-    assert outcome == 'nothing'
+    # Assert: no second comment; the bot writes a post instead.
+    assert outcome == 'post'
     assert 'no posts left to comment on' in logs[0]
     assert db.execute('SELECT COUNT(*) FROM comments').fetchone()[0] == 1
 
@@ -169,8 +169,9 @@ def test_bot_never_comments_on_its_own_post(db):
     outcome, logs = tick(Pacing(weights=COMMENT_ONLY, cooldown_seconds=0))
 
     # Assert
-    assert outcome == 'nothing'
+    assert outcome == 'post'
     assert 'no posts left to comment on' in logs[0]
+    assert db.execute('SELECT COUNT(*) FROM comments').fetchone()[0] == 0
 
 
 def test_bot_never_replies_to_itself(db):
@@ -183,9 +184,25 @@ def test_bot_never_replies_to_itself(db):
     # Act
     outcome, logs = tick(Pacing(weights=REPLY_ONLY, cooldown_seconds=0))
 
-    # Assert
-    assert outcome == 'nothing'
+    # Assert: it cannot reply to itself or comment twice here, so it ends up posting.
+    replies = db.execute('SELECT COUNT(*) FROM comments WHERE parent_id IS NOT NULL').fetchone()[0]
+    assert outcome == 'post'
     assert 'no comments to reply to' in logs[0]
+    assert replies == 0
+
+
+def test_a_bot_on_an_empty_site_posts_instead_of_skipping(db):
+    # Arrange: a brand-new site has nothing to reply to and nothing to comment on.
+    seed_bots([BOTS[0]])
+
+    # Act
+    outcome, logs = tick(Pacing(weights=REPLY_ONLY))
+
+    # Assert: the whole chain is visible in the log, and a post was written.
+    assert outcome == 'post'
+    assert 'no comments to reply to' in logs[0]
+    assert 'no posts left to comment on' in logs[0]
+    assert db.execute('SELECT COUNT(*) FROM posts').fetchone()[0] == 1
 
 
 def test_bots_reply_to_each_other(db):
@@ -219,12 +236,14 @@ def test_bot_replies_stop_at_the_depth_limit(db):
     first, _ = tick(pacing)
     second, logs = tick(pacing)
 
-    # Assert
-    bot_reply = db.execute('SELECT parent_id FROM comments WHERE author_id = ?', (bot_id(db),)).fetchall()
+    # Assert: the second time, the only reply target is too deep, so the bot comments on the post instead.
+    bot_comments = db.execute(
+        'SELECT parent_id FROM comments WHERE author_id = ? ORDER BY id', (bot_id(db),)
+    ).fetchall()
     assert first == 'reply'
-    assert bot_reply == [(top['id'],)]
-    assert second == 'nothing'
+    assert second == 'comment'
     assert 'within the depth limit' in logs[0]
+    assert bot_comments == [(top['id'],), (None,)]
 
 
 def test_toxic_bot_text_is_skipped_and_not_stored(db):
@@ -261,6 +280,24 @@ def test_bot_action_is_skipped_when_moderation_is_unavailable(db, monkeypatch):
     assert outcome == 'moderation-error'
     assert 'moderation unavailable: read timed out' in logs[0]
     assert db.execute('SELECT COUNT(*) FROM comments').fetchone()[0] == 0
+
+
+def test_a_skip_after_a_fallback_still_says_why_it_fell_back(db):
+    # Arrange: an empty site forces reply -> comment -> post, and the post's text is rejected.
+    seed_bots([BOTS[0]])
+
+    class ToxicPoster(OfflineBrain):
+        def write_post(self, personality, seed):
+            post = super().write_post(personality, seed)
+            return type(post)(title=post.title, body='you are an idiot')
+
+    # Act
+    outcome, logs = tick(Pacing(weights=REPLY_ONLY), brain=ToxicPoster())
+
+    # Assert
+    assert outcome == 'rejected'
+    assert 'toxicity' in logs[0]
+    assert 'no comments to reply to' in logs[0]
 
 
 def test_brain_failure_is_skipped_not_crashed(db):
