@@ -5,9 +5,10 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    // In dev, forward /api to the local Flask server - mirrors what nginx does in production
+    // In dev, forward /api and /uploads to the local Flask server - mirrors what nginx does in production
     proxy: {
       '/api': 'http://localhost:5000',
+      '/uploads': 'http://localhost:5000',
     },
   },
 })

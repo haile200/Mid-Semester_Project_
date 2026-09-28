@@ -15,7 +15,11 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-RUN useradd --create-home appuser
+# The uploads folder must belong to appuser before a volume is mounted on it: Docker copies this
+# ownership into a new, empty volume, so the app can write there without running as root.
+RUN useradd --create-home appuser \
+    && mkdir -p /app/uploads \
+    && chown appuser /app/uploads
 USER appuser
 
 EXPOSE 5000

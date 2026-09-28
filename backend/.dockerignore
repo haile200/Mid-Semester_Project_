@@ -9,3 +9,6 @@ __pycache__/
 htmlcov/
 .pytest_cache/
 *.log
+
+# Images people upload; they live in a Docker volume in production.
+uploads/

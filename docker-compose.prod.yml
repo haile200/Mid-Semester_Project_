@@ -11,6 +11,8 @@ services:
     image: mybeta-backend
     pull_policy: never
     env_file: backend/.env
+    volumes:
+      - uploads:/app/uploads
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3)"]
       interval: 5s
@@ -34,7 +36,14 @@ services:
     pull_policy: never
     ports:
       - "80:80"
+    volumes:
+      # Read-only: nginx only serves the images.
+      - uploads:/srv/uploads:ro
     depends_on:
       backend:
         condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  # Uploaded images outlive container rebuilds and deploys. They live on the EC2 disk.
+  uploads:

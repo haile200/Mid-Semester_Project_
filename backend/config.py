@@ -30,3 +30,6 @@ class Config:
     # Google shows app passwords in groups of four separated by spaces; the spaces are not part of it.
     SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '').replace(' ', '')
     MAIL_FROM = os.getenv('MAIL_FROM', '')
+    # Uploaded images. In Docker this folder is a volume that nginx also reads.
+    UPLOAD_DIR = os.getenv('UPLOAD_DIR') or os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    MAX_UPLOAD_MB = 5
