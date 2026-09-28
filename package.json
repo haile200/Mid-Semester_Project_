@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "backend": "cd backend && python app.py",
+    "backend": "cd backend && venv\\Scripts\\python.exe app.py",
     "start:all": "concurrently \"npm run backend\" \"npm run dev\"",
     "build": "vite build",
     "lint": "eslint .",
