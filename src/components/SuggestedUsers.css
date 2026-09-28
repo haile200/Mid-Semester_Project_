@@ -1,0 +1,32 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.suggested-users {
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.04);
+}
+
+.MuiTypography-root.suggested-users-title {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2C2C2A;
+}
+
+.MuiButton-root.suggested-users-follow {
+    flex-shrink: 0;
+    padding: 2px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    border-radius: 999px;
+    background-color: #F0997B;
+    color: #4A1B0C;
+}
+
+.MuiButton-root.suggested-users-follow:hover {
+    background-color: #E8875F;
+}

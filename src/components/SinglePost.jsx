@@ -10,11 +10,14 @@ import DOMPurify from 'dompurify';
 import Avatar from './Avatar';
 import CommentThread from './CommentThread';
 import ReportPost from './ReportPost';
+import LikeButton from './LikeButton';
 import { climbingBadges } from '../theme';
 import { getTimeAgo } from '../timeAgo';
 import './SinglePost.css';
 
-export default function SinglePost({ postId, authorId, currentUserId, title, author, body, imageUrl, createdAt, canComment }) {
+export default function SinglePost({
+    postId, authorId, currentUserId, title, author, body, imageUrl, createdAt, canComment, likeCount, likedByMe,
+}) {
     // "Beta" is climber-speak for route advice; the thread loads only when opened.
     const [isThreadOpen, setIsThreadOpen] = useState(false);
     const [isReportOpen, setIsReportOpen] = useState(false);
@@ -77,6 +80,12 @@ export default function SinglePost({ postId, authorId, currentUserId, title, aut
             />
 
             <Box className="post-footer">
+                <LikeButton
+                    postId={postId}
+                    initialCount={likeCount}
+                    initialLiked={likedByMe}
+                    canLike={Boolean(currentUserId)}
+                />
                 {canReport && (
                     <Button
                         size="small"

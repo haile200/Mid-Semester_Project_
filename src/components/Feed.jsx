@@ -15,6 +15,8 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import { Avatar as MuiAvatar } from '@mui/material';
 import SinglePost from './SinglePost';
+import FollowListDialog from './FollowListDialog';
+import SuggestedUsers from './SuggestedUsers';
 import { fetchPosts, fetchUserDetails, toggleFollow, fetchFollowingFeed, fetchFeed, updateProfile } from '../api';
 import './Feed.css';
 
@@ -45,6 +47,7 @@ export default function Feed() {
     const [userDetails, setUserDetails] = useState(location.state?.userDetails || null);
 
     const [feedType, setFeedType] = useState(0);
+    const [openFollowList, setOpenFollowList] = useState(null);
 
     // Edit Profile State
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -203,9 +206,13 @@ export default function Feed() {
                                 <Typography className="feed-profile-stats">
                                     {userDetails.postCount} {userDetails.postCount === 1 ? 'Post' : 'Posts'}
                                     {' • '}
-                                    {userDetails.followersCount || 0} Followers
+                                    <button type="button" className="feed-profile-stat-link" onClick={() => setOpenFollowList('followers')} data-cy="followers-link">
+                                        {userDetails.followersCount || 0} Followers
+                                    </button>
                                     {' • '}
-                                    {userDetails.followingCount || 0} Following
+                                    <button type="button" className="feed-profile-stat-link" onClick={() => setOpenFollowList('following')} data-cy="following-link">
+                                        {userDetails.followingCount || 0} Following
+                                    </button>
                                 </Typography>
                             </Box>
 
@@ -272,7 +279,17 @@ export default function Feed() {
                 </DialogActions>
             </Dialog>
 
+            {openFollowList && (
+                <FollowListDialog userId={userId} kind={openFollowList} onClose={() => setOpenFollowList(null)} />
+            )}
+
             <Box className="feed-content">
+              {/* The sidebar only makes sense on the home feed for someone logged in. */}
+              <Box className={!userId && currentUserId ? 'feed-home' : undefined}>
+                {!userId && currentUserId && (
+                    <Box className="feed-home-aside"><SuggestedUsers /></Box>
+                )}
+                <Box className="feed-home-main">
                 {!userId ? (
                     <Box className="feed-tabs-container">
                         <Tabs
@@ -331,6 +348,8 @@ export default function Feed() {
                                         body={post.body}
                                         imageUrl={post.image_url}
                                         createdAt={post.created_at}
+                                        likeCount={post.likeCount}
+                                        likedByMe={post.likedByMe}
                                         authorProfilePicture={post.author_profile_picture || userDetails?.profile_picture}
                                     />
                                 ))}
@@ -350,6 +369,8 @@ export default function Feed() {
                                         body={post.body}
                                         imageUrl={post.image_url}
                                         createdAt={post.created_at}
+                                        likeCount={post.likeCount}
+                                        likedByMe={post.likedByMe}
                                         authorProfilePicture={post.author_profile_picture}
                                     />
                                 ))}
@@ -366,6 +387,8 @@ export default function Feed() {
                         </Box>
                     </>
                 )}
+                </Box>
+              </Box>
             </Box>
         </Box>
     );

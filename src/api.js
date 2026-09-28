@@ -193,6 +193,21 @@ const sendJson = async (method, path, payload) => {
     return handleResponse(response);
 };
 
+export const likePost = (postId) => sendJson('PUT', `/posts/${postId}/like`);
+
+export const unlikePost = (postId) => sendJson('DELETE', `/posts/${postId}/like`);
+
+const getJson = async (path) => {
+    const response = await fetch(`${BASE_URL}${path}`, { credentials: 'include' });
+    return handleResponse(response);
+};
+
+export const fetchFollowers = (userId) => getJson(`/users/${userId}/followers?limit=50`);
+
+export const fetchFollowing = (userId) => getJson(`/users/${userId}/following?limit=50`);
+
+export const fetchSuggestions = (limit = 5) => getJson(`/users/suggestions?limit=${limit}`);
+
 export const reportPost = (postId, reason, note) =>
     sendJson('POST', `/posts/${postId}/reports`, { reason, note });
 

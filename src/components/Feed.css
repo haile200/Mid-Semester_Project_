@@ -74,6 +74,56 @@
     font-size: 14px;
 }
 
+/* Real buttons (keyboard and screen-reader friendly) styled to read as part of the stats line */
+.feed-profile-stat-link {
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.feed-profile-stat-link:hover,
+.feed-profile-stat-link:focus-visible {
+    text-decoration: underline;
+}
+
+/* Home feed with the suggestions sidebar: stacked on phones, side by side on wide screens */
+.feed-home {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.feed-home-aside {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+@media (min-width: 1000px) {
+    .feed-home {
+        display: grid;
+        grid-template-columns: minmax(0, 640px) 280px;
+        justify-content: center;
+        align-items: start;
+        column-gap: 24px;
+    }
+
+    .feed-home-main {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .feed-home-aside {
+        grid-column: 2;
+        grid-row: 1;
+        position: sticky;
+        top: 80px;
+    }
+}
+
 .feed-profile-actions {
     display: flex;
     gap: 8px;

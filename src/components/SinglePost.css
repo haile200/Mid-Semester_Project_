@@ -140,6 +140,23 @@
     flex-grow: 1;
 }
 
+.MuiButton-root.post-like-button {
+    min-width: 0;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    color: #5F5E5A;
+}
+
+.MuiButton-root.post-like-button--liked {
+    color: #D85A30;
+}
+
+.MuiButton-root.post-like-button.Mui-disabled {
+    color: #9A988F;
+}
+
 .MuiButton-root.post-report-button {
     min-width: 0;
     padding: 2px 6px;

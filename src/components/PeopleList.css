@@ -1,0 +1,86 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.people-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.people-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.people-identity {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+    gap: 10px;
+    padding: 6px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.people-identity:hover {
+    background-color: #FAF9F5;
+}
+
+.MuiAvatar-root.people-avatar {
+    width: 34px;
+    height: 34px;
+    font-size: 14px;
+    font-weight: 700;
+    background-color: #FAECE7;
+    color: #712B13;
+}
+
+/* min-width: 0 lets long names shrink and end with an ellipsis instead of widening the row */
+.people-text {
+    min-width: 0;
+}
+
+.people-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.MuiTypography-root.people-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2C2C2A;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.MuiChip-root.people-bot-chip {
+    height: 18px;
+    font-size: 10px;
+    font-weight: 700;
+    background-color: #E1F5EE;
+    color: #085041;
+}
+
+.people-loading {
+    display: flex;
+    justify-content: center;
+    padding: 16px 0;
+}
+
+.MuiTypography-root.people-message {
+    font-size: 14px;
+    color: #5F5E5A;
+}
+
+.MuiTypography-root.people-message--error {
+    color: #D32F2F;
+}
+
+.MuiTypography-root.people-subtitle {
+    font-size: 12px;
+    color: #5F5E5A;
+}
