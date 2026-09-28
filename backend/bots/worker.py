@@ -105,7 +105,7 @@ def load_bots(now):
 
 def do_post(bot, brain, rng, pacing, seed):
     post = _ask(brain.write_post, bot.personality, seed)
-    post_id = services.create_post(bot.id, post.title, to_post_html(post.body))
+    post_id = services.create_post(bot.id, post.title, to_post_html(post.body), strict=True)
     return f'-> post {post_id} "{post.title}"'
 
 
@@ -116,7 +116,7 @@ def do_comment(bot, brain, rng, pacing, seed):
     target = rng.choice(targets)
     context = f"{target['title']}\n{html_to_text(target['body'])}"
     text = _ask(brain.write_reply, bot.personality, context, seed)
-    comment = services.create_comment(target['id'], bot.id, text)
+    comment = services.create_comment(target['id'], bot.id, text, strict=True)
     return f'post={target["id"]} -> comment {comment["id"]}'
 
 
@@ -129,7 +129,7 @@ def do_reply(bot, brain, rng, pacing, seed):
         depth = services.comment_depth(target['id'])
         if reply_allowed(depth, pacing):
             text = _ask(brain.write_reply, bot.personality, target['body'], seed)
-            comment = services.create_comment(target['post_id'], bot.id, text, parent_id=target['id'])
+            comment = services.create_comment(target['post_id'], bot.id, text, parent_id=target['id'], strict=True)
             return f'comment={target["id"]} depth={depth + 1} -> comment {comment["id"]}'
     raise NothingToDo('no comment to reply to within the depth limit')
 
@@ -160,6 +160,9 @@ def run_tick(tick, brain, rng, pacing, log):
     except services.ContentRejected as error:
         log(f'{head} -> skipped (toxicity: {error})')
         return 'rejected'
+    except services.ModerationUnavailable as error:
+        log(f'{head} -> skipped (moderation unavailable: {error})')
+        return 'moderation-error'
     except BrainUnavailable as error:
         log(f'{head} -> skipped (brain unavailable: {error})')
         return 'brain-error'
@@ -169,6 +172,11 @@ def run_tick(tick, brain, rng, pacing, log):
 
 
 # ---- The loop ----
+
+def worker_brain():
+    # No fallback: when the model fails, bots skip rather than post template text.
+    return get_brain(fallback=False)
+
 
 def parse_args(argv=None):
     defaults = Pacing()
@@ -202,8 +210,13 @@ def main(argv=None):
     log = logging.getLogger('bots.worker').info
 
     rng = random.Random(args.seed)
-    brain = get_brain()
-    log(f'worker started  brain={type(brain).__name__}  sleep={pacing.min_sleep:g}-{pacing.max_sleep:g}s  '
+    try:
+        brain = worker_brain()
+    except ValueError as error:
+        log(f'worker not started: {error}')
+        return 1
+    log(f'worker started  brain={getattr(brain, "name", type(brain).__name__)}  '
+        f'sleep={pacing.min_sleep:g}-{pacing.max_sleep:g}s  '
         f'cooldown={pacing.cooldown_seconds}s  daily cap={pacing.daily_cap}  max reply depth={pacing.max_reply_depth}')
 
     tick = 0

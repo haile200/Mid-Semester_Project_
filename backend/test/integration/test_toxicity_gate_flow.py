@@ -1,7 +1,18 @@
 """Integration tests for the toxicity gate: real endpoints and SQL, with the
 real offline brain deciding what may be published."""
+import pytest
+
+import services
+from brain import FallbackBrain, OfflineBrain
 
 USER = {'name': 'Gate Tester', 'email': 'gate@example.com', 'password': 'Password123!'}
+
+
+class UnreachableModel(OfflineBrain):
+    name = 'unreachable'
+
+    def check_toxicity(self, text):
+        raise TimeoutError('read timed out')
 REJECTED = {'message': 'Not published: contains blocked language'}
 
 
@@ -63,3 +74,20 @@ def test_innocent_text_containing_a_blocked_word_is_published(client, db):
     # Assert
     assert response.status_code == 201
     assert count(db, 'posts') == 1
+
+
+@pytest.mark.parametrize('body, status', [('you are an idiot', 400), ('Great beta, thanks', 201)])
+def test_humans_get_the_offline_check_when_the_model_is_down(client, db, monkeypatch, body, status):
+    # Arrange: the real model times out; the fallback brain answers instead.
+    fallbacks = []
+    brain = FallbackBrain(UnreachableModel(), OfflineBrain(), lambda op, error: fallbacks.append(op))
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: brain)
+    log_in(client)
+    post_id = client.post('/api/posts', json={'title': 'Sent it', 'body': '<p>Yes.</p>'}).get_json()['postId']
+
+    # Act
+    response = client.post(f'/api/posts/{post_id}/comments', json={'body': body})
+
+    # Assert: the word list still decides, and each fallback was logged.
+    assert response.status_code == status
+    assert fallbacks == ['check_toxicity', 'check_toxicity']

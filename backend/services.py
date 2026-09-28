@@ -22,9 +22,17 @@ class ContentRejected(ValueError):
     """The brain refused to let the text be published."""
 
 
-def _ensure_publishable(text):
+class ModerationUnavailable(Exception):
+    """The moderation check itself failed. Only strict mode, used by the bot worker, raises this."""
+
+
+def _ensure_publishable(text, strict=False):
     # Runs before any database connection opens, so a slow check never holds one.
-    result = get_brain().check_toxicity(text)
+    # Strict mode gets no fallback: a failed check stops the publish instead of using the word list.
+    try:
+        result = get_brain(fallback=not strict).check_toxicity(text)
+    except Exception as error:
+        raise ModerationUnavailable(str(error)) from error
     if not result.allowed:
         reason = result.reason or 'Rejected by moderation'
         raise ContentRejected(f'Not published: {reason[0].lower()}{reason[1:]}')
@@ -197,16 +205,17 @@ def list_posts(start, limit, author_id=None):
     return _fetch_all(query, tuple(params))
 
 
-def create_post(author_id, title, body, image_url=None):
+def create_post(author_id, title, body, image_url=None, strict=False):
     """Sanitize and store a post.
 
-    Raises ValueError if title or body is empty after cleaning, ContentRejected if the brain blocks it.
+    Raises ValueError if title or body is empty after cleaning, ContentRejected if the brain blocks it,
+    and in strict mode ModerationUnavailable if the check cannot run.
     """
     title = (title or '').strip()
     body = sanitize_post_html(body or '').strip()
     if not title or not body:
         raise ValueError('Title and body are required')
-    _ensure_publishable(f'{title}\n{html_to_text(body)}')
+    _ensure_publishable(f'{title}\n{html_to_text(body)}', strict)
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute(
@@ -245,14 +254,15 @@ def list_comments(post_id, start, limit):
     return [_as_comment(row) for row in rows]
 
 
-def create_comment(post_id, author_id, body, parent_id=None):
+def create_comment(post_id, author_id, body, parent_id=None, strict=False):
     """Store a comment or reply and return it.
 
     Raises ValueError for invalid text or a parent outside this post, ContentRejected if the brain
-    blocks it, and LookupError if the post is missing.
+    blocks it, LookupError if the post is missing, and in strict mode ModerationUnavailable if the
+    check cannot run.
     """
     body = clean_comment_body(body)
-    _ensure_publishable(body)
+    _ensure_publishable(body, strict)
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))

@@ -21,10 +21,15 @@ class RecordingBrain:
         return ToxicityResult(allowed=False, reason='Contains blocked language')
 
 
+class FailingBrain:
+    def check_toxicity(self, text):
+        raise TimeoutError('read timed out')
+
+
 @pytest.fixture
 def rejecting_brain(monkeypatch):
     brain = RecordingBrain(allowed=False)
-    monkeypatch.setattr(services, 'get_brain', lambda: brain)
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: brain)
     return brain
 
 
@@ -99,3 +104,29 @@ def test_post_is_checked_as_title_and_plain_text_body(rejecting_brain, get_db):
 
     # Assert
     assert rejecting_brain.checked == ['My title\nHello world Second']
+
+
+@pytest.mark.parametrize('strict, expected_fallback', [(False, True), (True, False)])
+def test_strict_mode_asks_for_a_brain_without_fallback(monkeypatch, get_db, strict, expected_fallback):
+    # Arrange
+    requested = []
+    brain = RecordingBrain(allowed=False)
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: requested.append(fallback) or brain)
+
+    # Act
+    with pytest.raises(ContentRejected):
+        services.create_comment(post_id=1, author_id=2, body='text', strict=strict)
+
+    # Assert
+    assert requested == [expected_fallback]
+
+
+def test_strict_mode_reports_a_failed_check_instead_of_publishing(monkeypatch, get_db):
+    # Arrange: bots use strict mode, so a broken check must stop them, not wave them through.
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: FailingBrain())
+
+    # Act and Assert
+    with pytest.raises(services.ModerationUnavailable, match='read timed out'):
+        services.create_post(author_id=1, title='Title', body='<p>Body</p>', strict=True)
+
+    get_db.assert_not_called()

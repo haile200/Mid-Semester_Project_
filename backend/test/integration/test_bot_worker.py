@@ -242,6 +242,27 @@ def test_toxic_bot_text_is_skipped_and_not_stored(db):
     assert db.execute('SELECT COUNT(*) FROM comments').fetchone()[0] == 0
 
 
+class UnreachableModerator:
+    def check_toxicity(self, text):
+        raise TimeoutError('read timed out')
+
+
+def test_bot_action_is_skipped_when_moderation_is_unavailable(db, monkeypatch):
+    # Arrange: bots never fall back to a weaker check; they skip instead.
+    seed_bots([BOTS[0]])
+    human = add_human(db)
+    services.create_post(human, 'Post', '<p>Body</p>')
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: UnreachableModerator())
+
+    # Act
+    outcome, logs = tick(Pacing(weights=COMMENT_ONLY))
+
+    # Assert
+    assert outcome == 'moderation-error'
+    assert 'moderation unavailable: read timed out' in logs[0]
+    assert db.execute('SELECT COUNT(*) FROM comments').fetchone()[0] == 0
+
+
 def test_brain_failure_is_skipped_not_crashed(db):
     # Arrange
     seed_bots([BOTS[0]])

@@ -3,6 +3,7 @@ Flask-Cors
 gunicorn
 bcrypt
 nh3
+google-genai==2.25.0
 mysql-connector-python
 python-dotenv
 pytest

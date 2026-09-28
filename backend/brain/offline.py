@@ -169,6 +169,7 @@ def _fix_word(match):
 
 
 class OfflineBrain(Brain):
+    name = 'offline'
 
     def suggest_correction(self, text):
         text = re.sub(r'[ \t]+', ' ', text).strip()
