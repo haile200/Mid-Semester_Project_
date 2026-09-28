@@ -7,7 +7,7 @@ import TextField from '@mui/material/TextField';
 import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Avatar as MuiAvatar } from '@mui/material';
-import { fetchComments, createComment } from '../api';
+import { fetchComments, createComment, fetchCommentIdeas } from '../api';
 import { getTimeAgo } from '../timeAgo';
 import './CommentThread.css';
 
@@ -71,6 +71,9 @@ export default function CommentThread({ postId, canComment }) {
     const [replyTo, setReplyTo] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState('');
+    const [ideas, setIdeas] = useState([]);
+    const [isLoadingIdeas, setIsLoadingIdeas] = useState(false);
+    const [ideasError, setIdeasError] = useState('');
     const inputRef = useRef(null);
 
     useEffect(() => {
@@ -90,6 +93,25 @@ export default function CommentThread({ postId, canComment }) {
 
     const handleReply = (comment) => {
         setReplyTo(comment);
+        inputRef.current?.focus();
+    };
+
+    const handleSuggestIdeas = async () => {
+        setIsLoadingIdeas(true);
+        setIdeasError('');
+        try {
+            const { comments: suggested } = await fetchCommentIdeas(postId);
+            setIdeas(suggested);
+        } catch (error) {
+            setIdeasError(error.message);
+        } finally {
+            setIsLoadingIdeas(false);
+        }
+    };
+
+    // An idea only fills the box; the author still edits it and presses Send.
+    const pickIdea = (idea) => {
+        setDraft(idea);
         inputRef.current?.focus();
     };
 
@@ -141,6 +163,27 @@ export default function CommentThread({ postId, canComment }) {
                             </Button>
                         </Box>
                     )}
+                    <Box className="comment-ideas">
+                        <Button
+                            size="small"
+                            className="comment-ideas-button"
+                            onClick={handleSuggestIdeas}
+                            disabled={isLoadingIdeas}
+                            data-cy="comment-ideas-button"
+                        >
+                            {isLoadingIdeas ? 'Thinking...' : 'Suggest ideas'}
+                        </Button>
+                        {ideas.map((idea) => (
+                            <Chip
+                                key={idea}
+                                label={idea}
+                                onClick={() => pickIdea(idea)}
+                                className="comment-idea-chip"
+                                data-cy="comment-idea"
+                            />
+                        ))}
+                        {ideasError && <Typography className="comment-thread-error">{ideasError}</Typography>}
+                    </Box>
                     <TextField
                         multiline
                         maxRows={6}

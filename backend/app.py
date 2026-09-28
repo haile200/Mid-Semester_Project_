@@ -9,6 +9,7 @@ from routes.posts import posts_bp
 from routes.users import users_bp
 from routes.feed import feed_bp
 from routes.comments import comments_bp
+from routes.ai import ai_bp
 
 # Fail at startup on a broken BRAIN_MODE, not on the first post someone writes.
 select_mode(Config.BRAIN_MODE, Config.GEMINI_API_KEY)
@@ -22,6 +23,7 @@ app.register_blueprint(posts_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(feed_bp)
 app.register_blueprint(comments_bp)
+app.register_blueprint(ai_bp)
 
 
 @app.route('/api/health')

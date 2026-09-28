@@ -79,6 +79,22 @@ def sanitize_post_html(html):
     )
 
 
+MAX_CORRECTION_LENGTH = 5000
+
+
+def clean_correction_text(text):
+    """Returns the text unchanged if it can be sent for correction. Raises ValueError otherwise."""
+    if text is None:
+        text = ''
+    if not isinstance(text, str):
+        raise ValueError('Invalid input types')
+    if not text.strip():
+        raise ValueError('Text is required')
+    if len(text) > MAX_CORRECTION_LENGTH:
+        raise ValueError(f'Text must be {MAX_CORRECTION_LENGTH} characters or fewer')
+    return text
+
+
 BLOCK_TAG_RE = re.compile(r'</?(?:p|br|div|li|ul|ol|h[1-6])\b[^>]*>', re.IGNORECASE)
 TAG_RE = re.compile(r'<[^>]+>')
 

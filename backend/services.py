@@ -8,6 +8,7 @@ from brain import get_brain
 from db import get_db
 from utils import (
     clean_comment_body,
+    clean_correction_text,
     fetchall_dict,
     fetchone_dict,
     hash_password,
@@ -287,6 +288,24 @@ def create_comment(post_id, author_id, body, parent_id=None, strict=False):
             (comment_id,)
         )
         return _as_comment(fetchone_dict(cursor))
+
+
+# ---- Writing help ----
+
+def correct_text(text):
+    """Returns the text with spelling and capitalization fixed. Raises ValueError for invalid input."""
+    return get_brain().suggest_correction(clean_correction_text(text))
+
+
+def comment_ideas(post_id):
+    """Three comment ideas for the post, or None if it does not exist."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT title, body FROM posts WHERE id = %s", (post_id,))
+        post = cursor.fetchone()
+    # The model is called after the connection is closed, so a slow answer never holds one.
+    if post is None:
+        return None
+    return get_brain().propose_comments(post[0], post[1])
 
 
 # ---- Bot worker ----

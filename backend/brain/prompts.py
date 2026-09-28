@@ -18,8 +18,8 @@ MODERATION = (
 )
 
 CORRECTION = (
-    'Fix spelling, grammar and capitalization in the text. Keep the meaning, the tone and any '
-    'climbing slang, and do not add or remove content. '
+    'Fix spelling, grammar and capitalization in the text. Keep the meaning, the tone, any '
+    'climbing slang and every line break, and do not add or remove content. '
     f'{DATA_RULE} '
     'Answer with JSON: {"text": "the corrected text"}.'
 )

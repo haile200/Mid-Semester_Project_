@@ -100,12 +100,108 @@
 
 /* Rich text editor */
 .new-post-editor {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
 }
 
 .new-post-editor .ql-container {
     min-height: 200px;
     font-size: 16px;
+}
+
+/* Writing check */
+.new-post-check-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.MuiButton-root.new-post-check-button {
+    text-transform: none;
+    font-weight: 700;
+    border-radius: 999px;
+    color: #2C2C2A;
+    border-color: #EDEBE4;
+}
+
+.MuiButton-root.new-post-check-button:hover {
+    border-color: #F0997B;
+    background-color: #FAECE7;
+}
+
+.MuiTypography-root.new-post-check-message {
+    font-size: 13px;
+    color: #5F5E5A;
+}
+
+.new-post-suggestion {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #EDEBE4;
+    background-color: #FAF9F5;
+}
+
+.MuiTypography-root.new-post-suggestion-heading {
+    font-size: 14px;
+    font-weight: 700;
+    color: #2C2C2A;
+}
+
+.new-post-suggestion-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.MuiTypography-root.new-post-suggestion-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #5F5E5A;
+}
+
+/* pre-wrap shows each corrected paragraph on its own line */
+.MuiTypography-root.new-post-suggestion-text {
+    font-size: 14px;
+    color: #2C2C2A;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.MuiTypography-root.new-post-suggestion-note {
+    font-size: 12px;
+    color: #D32F2F;
+}
+
+.MuiButton-root.new-post-apply-button {
+    min-width: 0;
+    padding: 2px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    border-radius: 999px;
+    background-color: #2C2C2A;
+    color: #F1EFE8;
+}
+
+.MuiButton-root.new-post-apply-button:hover {
+    background-color: #444441;
+}
+
+.MuiButton-root.new-post-dismiss-button {
+    align-self: flex-start;
+    min-width: 0;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    color: #5F5E5A;
 }
 
 /* Buttons */

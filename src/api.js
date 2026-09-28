@@ -166,6 +166,23 @@ export const createComment = async (postId, body, parentId = null) => {
     return handleResponse(response);
 };
 
+export const suggestCorrection = async (text) => {
+    const response = await fetch(`${BASE_URL}/corrections`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ text })
+    });
+    return handleResponse(response);
+};
+
+export const fetchCommentIdeas = async (postId) => {
+    const response = await fetch(`${BASE_URL}/posts/${postId}/comment-ideas`, {
+        credentials: 'include'
+    });
+    return handleResponse(response);
+};
+
 export const updateProfile = async (bio, profilePicture) => {
     // We assume BASE_URL is defined at the top of your api.js file
     const response = await fetch(`${BASE_URL}/users/profile`, {
