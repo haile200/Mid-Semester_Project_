@@ -1,0 +1,27 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.image-upload {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.MuiButton-root.image-upload-button {
+    text-transform: none;
+    font-weight: 700;
+    border-radius: 999px;
+    color: #2C2C2A;
+    border-color: #EDEBE4;
+}
+
+.MuiButton-root.image-upload-button:hover {
+    border-color: #F0997B;
+    background-color: #FAECE7;
+}
+
+.MuiTypography-root.image-upload-error {
+    font-size: 13px;
+    color: #D32F2F;
+}

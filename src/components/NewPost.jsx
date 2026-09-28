@@ -12,6 +12,7 @@ import Chip from '@mui/material/Chip';
 import SpellcheckIcon from '@mui/icons-material/Spellcheck';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { createPost, suggestCorrection, suggestPost } from '../api';
+import ImageUpload from './ImageUpload';
 import { hasFormatting, htmlToParagraphs, paragraphsToHtml } from '../writingHelp';
 import './NewPost.css';
 
@@ -181,16 +182,27 @@ export default function NewPost({ currentUser }) {
                     ))}
                 </Box>
 
-                <Typography variant="body2" className="new-post-label">Image URL (Optional)</Typography>
+                <Typography variant="body2" className="new-post-label">Photo (optional)</Typography>
+                <Box className="new-post-photo-row">
+                    <ImageUpload onUploaded={setImageUrl} disabled={!activeUser || isLoading} />
+                </Box>
                 <TextField
                     fullWidth
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="or paste an image link: https://example.com/image.jpg"
                     size="small"
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     className="new-post-input"
                     disabled={!activeUser || isLoading}
                 />
+                {imageUrl && (
+                    <Box className="new-post-image-preview" data-cy="new-post-image-preview">
+                        <img src={imageUrl} alt="Chosen for this post" />
+                        <Button size="small" onClick={() => setImageUrl('')} className="new-post-dismiss-button">
+                            Remove photo
+                        </Button>
+                    </Box>
+                )}
 
                 <Typography variant="body2" className="new-post-label">Body</Typography>
                 <Box className="new-post-editor">

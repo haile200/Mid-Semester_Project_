@@ -16,6 +16,7 @@ import TextField from '@mui/material/TextField';
 import { Avatar as MuiAvatar } from '@mui/material';
 import SinglePost from './SinglePost';
 import FollowListDialog from './FollowListDialog';
+import ImageUpload from './ImageUpload';
 import SuggestedUsers from './SuggestedUsers';
 import { fetchPosts, fetchUserDetails, toggleFollow, fetchFollowingFeed, fetchFeed, updateProfile } from '../api';
 import './Feed.css';
@@ -251,6 +252,7 @@ export default function Feed() {
                 <DialogTitle>Edit Profile</DialogTitle>
                 <DialogContent>
                     <Box className="feed-edit-dialog-fields">
+                        <ImageUpload onUploaded={setEditProfilePicture} label="Upload a picture" />
                         <TextField
                             label="Profile Picture URL"
                             fullWidth

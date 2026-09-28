@@ -193,7 +193,20 @@ const sendJson = async (method, path, payload) => {
     return handleResponse(response);
 };
 
-export const requestPasswordReset = (email) => sendJson('POST', '/password-resets', { email });
+// FormData makes the browser send multipart/form-data with its boundary; setting Content-Type
+// by hand would leave the boundary out and the server could not read the file.
+export const uploadImage = async (file) => {
+    const form = new FormData();
+    form.append('image', file);
+    const response = await fetch(`${BASE_URL}/uploads`, {
+        method: 'POST',
+        credentials: 'include',
+        body: form
+    });
+    return handleResponse(response);
+};
+
+export const requestPasswordReset =(email) => sendJson('POST', '/password-resets', { email });
 
 export const resetPassword = (token, password) => sendJson('POST', '/password-resets/confirm', { token, password });
 
