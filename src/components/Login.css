@@ -110,3 +110,20 @@
     border-color: #D85A30;
     background-color: #FAECE7;
 }
+
+/* Password reset pages share this card */
+.MuiButton-root.login-text-button {
+    display: block;
+    margin: 0 auto 16px;
+    text-transform: none;
+    color: #D85A30;
+    font-weight: 600;
+}
+
+.MuiTypography-root.login-success {
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background-color: #E1F5EE;
+    color: #085041;
+}

@@ -193,6 +193,10 @@ const sendJson = async (method, path, payload) => {
     return handleResponse(response);
 };
 
+export const requestPasswordReset = (email) => sendJson('POST', '/password-resets', { email });
+
+export const resetPassword = (token, password) => sendJson('POST', '/password-resets/confirm', { token, password });
+
 // notes: { style, grade, title, body } with body as plain text, one paragraph per line
 export const suggestPost = (notes) => sendJson('POST', '/post-suggestions', notes);
 

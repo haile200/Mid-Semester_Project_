@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
@@ -105,6 +105,15 @@ export default function Login({ onLogin }) {
                     className="login-submit-button"
                 >
                     {isLoading ? 'Logging in...' : 'Login'}
+                </Button>
+
+                <Button
+                    variant="text"
+                    onClick={() => navigate('/forgot-password')}
+                    className="login-text-button"
+                    data-cy="forgot-password"
+                >
+                    Forgot password?
                 </Button>
 
                 <Divider className="login-divider">OR</Divider>

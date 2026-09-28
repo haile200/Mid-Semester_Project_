@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import TopBar from './components/TopBar';
@@ -6,6 +6,8 @@ import Feed from './components/Feed';
 import Users from './components/Users';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import Profile from './components/Profile';
 import NewPost from './components/NewPost';
 // Import the About component
@@ -40,14 +42,18 @@ function App() {
         setCurrentUser(user);
     };
 
+    const forgetUser = () => {
+        localStorage.removeItem('currentUser');
+        setCurrentUser(null);
+    };
+
     const handleLogout = async () => {
         try {
             await logout();
         } catch (error) {
             console.error('Logout failed:', error);
         } finally {
-            localStorage.removeItem('currentUser');
-            setCurrentUser(null);
+            forgetUser();
         }
     };
 
@@ -62,6 +68,8 @@ function App() {
                 <Route path="/user-posts/:userId" element={<Feed />} />
                 <Route path="/login" element={<Login onLogin={handleLogin} />} />
                 <Route path="/signup" element={<Signup />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword onPasswordReset={forgetUser} />} />
                 <Route path="/profile" element={<Profile />} />
                 
                 {/* Removed RequireAuth wrapper to allow direct access for testing */}
