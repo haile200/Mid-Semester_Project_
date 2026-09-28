@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,7 +10,8 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import Chip from '@mui/material/Chip';
 import SpellcheckIcon from '@mui/icons-material/Spellcheck';
-import { createPost, suggestCorrection } from '../api';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { createPost, suggestCorrection, suggestPost } from '../api';
 import { hasFormatting, htmlToParagraphs, paragraphsToHtml } from '../writingHelp';
 import './NewPost.css';
 
@@ -24,12 +25,14 @@ export default function NewPost({ currentUser }) {
     const [imageUrl, setImageUrl] = useState('');
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    // Visual-only climbing metadata until the backend stores grades and styles
+    // Not stored with the post yet; they steer the post suggestions.
     const [climbStyle, setClimbStyle] = useState('Bouldering');
     const [climbGrade, setClimbGrade] = useState('V4');
-    // Suggested fixes are only shown; nothing changes until the author presses Apply.
+    // Suggestions are only shown; nothing changes until the author presses Apply.
     const [suggestion, setSuggestion] = useState(null);
-    const [isChecking, setIsChecking] = useState(false);
+    const [suggestionHeading, setSuggestionHeading] = useState('');
+    // '' when idle, otherwise 'check' or 'suggest'. One request at a time keeps the two from racing.
+    const [helpInProgress, setHelpInProgress] = useState('');
     const [checkMessage, setCheckMessage] = useState('');
 
     const storedUser = currentUser || JSON.parse(localStorage.getItem('currentUser') || 'null');
@@ -47,29 +50,43 @@ export default function NewPost({ currentUser }) {
     const bodyText = htmlToParagraphs(body);
     const hasTextToCheck = Boolean(title.trim() || bodyText.trim());
 
-    const handleCheckWriting = async () => {
+    const runWritingHelp = async (kind, request) => {
         setSuggestion(null);
         setCheckMessage('');
-        setIsChecking(true);
+        setHelpInProgress(kind);
         try {
-            const [fixedTitle, fixedBody] = await Promise.all([
-                title.trim() ? suggestCorrection(title).then((data) => data.text) : title,
-                bodyText.trim() ? suggestCorrection(bodyText).then((data) => data.text) : bodyText,
-            ]);
-            const changes = {};
-            if (fixedTitle !== title) changes.title = fixedTitle;
-            if (fixedBody !== bodyText) changes.body = fixedBody;
-            if (Object.keys(changes).length) {
-                setSuggestion(changes);
-            } else {
-                setCheckMessage('Looks good - no changes suggested.');
-            }
+            await request();
         } catch (error) {
-            setCheckMessage(error.message || 'Could not check the writing.');
+            setCheckMessage(error.message || 'Writing help is not available right now.');
         } finally {
-            setIsChecking(false);
+            setHelpInProgress('');
         }
     };
+
+    const offerChanges = (heading, newTitle, newBody, noChangeMessage) => {
+        const changes = {};
+        if (newTitle.trim() !== title.trim()) changes.title = newTitle;
+        if (newBody.trim() !== bodyText.trim()) changes.body = newBody;
+        if (Object.keys(changes).length) {
+            setSuggestionHeading(heading);
+            setSuggestion(changes);
+        } else {
+            setCheckMessage(noChangeMessage);
+        }
+    };
+
+    const handleCheckWriting = () => runWritingHelp('check', async () => {
+        const [fixedTitle, fixedBody] = await Promise.all([
+            title.trim() ? suggestCorrection(title).then((data) => data.text) : title,
+            bodyText.trim() ? suggestCorrection(bodyText).then((data) => data.text) : bodyText,
+        ]);
+        offerChanges('Suggested fixes', fixedTitle, fixedBody, 'Looks good - no changes suggested.');
+    });
+
+    const handleSuggestPost = () => runWritingHelp('suggest', async () => {
+        const draft = await suggestPost({ style: climbStyle, grade: climbGrade, title, body: bodyText });
+        offerChanges('Suggested post', draft.title, draft.body, 'Nothing to add - your post already has a title and text.');
+    });
 
     const applySuggestion = (field) => {
         if (field === 'title') setTitle(suggestion.title);
@@ -190,13 +207,23 @@ export default function NewPost({ currentUser }) {
                 <Box className="new-post-check-row">
                     <Button
                         variant="outlined"
+                        startIcon={<AutoAwesomeIcon />}
+                        disabled={!activeUser || isLoading || Boolean(helpInProgress)}
+                        onClick={handleSuggestPost}
+                        className="new-post-check-button"
+                        data-cy="suggest-post"
+                    >
+                        {helpInProgress === 'suggest' ? 'Suggesting...' : 'Suggest a post'}
+                    </Button>
+                    <Button
+                        variant="outlined"
                         startIcon={<SpellcheckIcon />}
-                        disabled={!activeUser || isLoading || isChecking || !hasTextToCheck}
+                        disabled={!activeUser || isLoading || Boolean(helpInProgress) || !hasTextToCheck}
                         onClick={handleCheckWriting}
                         className="new-post-check-button"
                         data-cy="check-writing"
                     >
-                        {isChecking ? 'Checking...' : 'Check writing'}
+                        {helpInProgress === 'check' ? 'Checking...' : 'Check writing'}
                     </Button>
                     {checkMessage && (
                         <Typography variant="body2" className="new-post-check-message">{checkMessage}</Typography>
@@ -205,7 +232,7 @@ export default function NewPost({ currentUser }) {
 
                 {suggestion && (
                     <Box className="new-post-suggestion" data-cy="writing-suggestion">
-                        <Typography className="new-post-suggestion-heading">Suggested fixes</Typography>
+                        <Typography className="new-post-suggestion-heading">{suggestionHeading}</Typography>
 
                         {suggestion.title !== undefined && (
                             <Box className="new-post-suggestion-item">

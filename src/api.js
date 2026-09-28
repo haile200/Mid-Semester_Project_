@@ -193,6 +193,9 @@ const sendJson = async (method, path, payload) => {
     return handleResponse(response);
 };
 
+// notes: { style, grade, title, body } with body as plain text, one paragraph per line
+export const suggestPost = (notes) => sendJson('POST', '/post-suggestions', notes);
+
 export const likePost = (postId) => sendJson('PUT', `/posts/${postId}/like`);
 
 export const unlikePost = (postId) => sendJson('DELETE', `/posts/${postId}/like`);
