@@ -1,6 +1,7 @@
 # Production on EC2:   docker compose -f docker-compose.prod.yml up -d
 # The database is RDS, so there is no db service. Settings come from backend/.env on the server
-# (DB_HOST points at RDS; GEMINI_API_KEY for the brain).
+# (DB_HOST points at RDS; GEMINI_API_KEY for the brain; APP_URL, SMTP_USER and SMTP_PASSWORD for
+# password reset emails).
 # Images are built on a developer machine and loaded onto the server, which has too little memory
 # to build them; pull_policy: never stops compose from fetching a same-named image from Docker Hub.
 name: mybeta

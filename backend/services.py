@@ -1,7 +1,8 @@
+import hashlib
 import random
 import secrets
 from contextlib import closing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import mysql.connector
 
@@ -186,6 +187,80 @@ def delete_session(token):
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute("DELETE FROM sessions WHERE token = %s", (token,))
+        conn.commit()
+
+
+# ---- Password reset ----
+
+RESET_LINK_MINUTES = 30
+
+
+class InvalidResetToken(Exception):
+    pass
+
+
+def _reset_token_hash(token):
+    # A fast hash is enough here: the token is 256 random bits, so it cannot be guessed the way a password can.
+    return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+
+def create_password_reset(email):
+    """Returns (name, token) for a new reset link, or None if the email cannot reset a password.
+
+    Bots and banned accounts cannot. A new link replaces any earlier one for the same account.
+    """
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute(
+            "SELECT id, name FROM users WHERE email = %s AND is_bot = 0 AND banned_at IS NULL",
+            (email,)
+        )
+        user = cursor.fetchone()
+        if user is None:
+            return None
+
+        token = secrets.token_urlsafe(32)
+        cursor.execute("DELETE FROM password_resets WHERE user_id = %s", (user[0],))
+        cursor.execute(
+            "INSERT INTO password_resets (token_hash, user_id) VALUES (%s, %s)",
+            (_reset_token_hash(token), user[0])
+        )
+        conn.commit()
+    return user[1], token
+
+
+def reset_password(token, new_password):
+    """Sets the new password, uses up the link and logs the account out everywhere.
+
+    Raises InvalidResetToken for an unknown, used or expired token, or a banned account.
+    """
+    if not isinstance(token, str) or not token:
+        raise InvalidResetToken()
+    token_hash = _reset_token_hash(token)
+    oldest_allowed = database_now() - timedelta(minutes=RESET_LINK_MINUTES)
+
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute(
+            """
+            SELECT password_resets.user_id
+            FROM password_resets
+            JOIN users ON users.id = password_resets.user_id
+            WHERE password_resets.token_hash = %s
+              AND password_resets.created_at >= %s
+              AND users.banned_at IS NULL
+            """,
+            (token_hash, oldest_allowed)
+        )
+        row = cursor.fetchone()
+        if row is None:
+            raise InvalidResetToken()
+
+        # Claiming the link by deleting it means two simultaneous requests cannot both use it.
+        cursor.execute("DELETE FROM password_resets WHERE token_hash = %s", (token_hash,))
+        if cursor.rowcount != 1:
+            raise InvalidResetToken()
+
+        cursor.execute("UPDATE users SET password = %s WHERE id = %s", (hash_password(new_password), row[0]))
+        cursor.execute("DELETE FROM sessions WHERE user_id = %s", (row[0],))
         conn.commit()
 
 

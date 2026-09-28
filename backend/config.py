@@ -20,3 +20,13 @@ class Config:
     # "or", not a getenv default: docker compose passes GEMINI_MODEL="" when .env leaves it blank.
     GEMINI_MODEL = os.getenv('GEMINI_MODEL') or 'gemini-3.8-flash'
     BRAIN_MODE = os.getenv('BRAIN_MODE', '')
+    # Where the site is served; links in emails point here.
+    APP_URL = (os.getenv('APP_URL') or 'http://localhost:5173').rstrip('/')
+    # Gmail: smtp.gmail.com on 465 with an app password. Without SMTP_USER and SMTP_PASSWORD,
+    # emails are written to the log instead of sent.
+    SMTP_HOST = os.getenv('SMTP_HOST') or 'smtp.gmail.com'
+    SMTP_PORT = int(os.getenv('SMTP_PORT') or 465)
+    SMTP_USER = os.getenv('SMTP_USER', '')
+    # Google shows app passwords in groups of four separated by spaces; the spaces are not part of it.
+    SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '').replace(' ', '')
+    MAIL_FROM = os.getenv('MAIL_FROM', '')

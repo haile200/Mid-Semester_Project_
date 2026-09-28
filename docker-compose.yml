@@ -10,6 +10,10 @@ x-backend-env: &backend-env
   GEMINI_API_KEY: ${GEMINI_API_KEY:-}
   GEMINI_MODEL: ${GEMINI_MODEL:-}
   BRAIN_MODE: ${BRAIN_MODE:-}
+  APP_URL: http://localhost:${WEB_PORT:-8080}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  MAIL_FROM: ${MAIL_FROM:-}
 
 services:
   db:

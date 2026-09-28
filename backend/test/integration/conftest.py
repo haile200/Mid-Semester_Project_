@@ -4,6 +4,7 @@ running database server."""
 import os
 import sqlite3
 import sys
+from datetime import datetime
 
 import pytest
 
@@ -11,6 +12,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 import services
 from app import app
+
+# Python 3.12 deprecated sqlite3's built-in datetime conversion. This stores the same text that
+# SQLite's CURRENT_TIMESTAMP produces, so time comparisons in SQL stay correct.
+sqlite3.register_adapter(datetime, lambda value: value.isoformat(' '))
 
 SCHEMA = """
 CREATE TABLE users (
@@ -76,6 +81,12 @@ CREATE TABLE reports (
     reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
     reviewed_at TIMESTAMP,
     UNIQUE (post_id, reporter_id)
+);
+
+CREATE TABLE password_resets (
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 """
 

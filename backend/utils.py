@@ -48,6 +48,14 @@ def clean_comment_body(body):
     return body
 
 
+# bcrypt only uses the first 72 bytes of a password.
+PASSWORD_LENGTH_MESSAGE = 'Password must be between 8 and 72 characters'
+
+
+def is_valid_password(password):
+    return isinstance(password, str) and 8 <= len(password) <= 72
+
+
 def hash_password(plain_password):
     salt = bcrypt.gensalt()
     return bcrypt.hashpw(plain_password.encode('utf-8'), salt).decode('utf-8')
