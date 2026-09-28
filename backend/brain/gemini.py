@@ -108,3 +108,11 @@ class GeminiBrain(Brain):
     def write_reply(self, personality, context, seed):
         data = self._ask(prompts.bot_reply(personality), prompts.wrap('context', context), temperature=0.9, seed=seed)
         return _text(data, 'reply', MAX_REPLY)
+
+    def suggest_post(self, notes, seed):
+        contents = prompts.wrap('notes', (
+            f'Style: {notes.style}\nGrade: {notes.grade}\n'
+            f'Title: {notes.title or prompts.NOT_STARTED}\nText: {notes.body or prompts.NOT_STARTED}'
+        ))
+        data = self._ask(prompts.POST_SUGGESTION, contents, temperature=0.9, seed=seed)
+        return GeneratedPost(title=_text(data, 'title', MAX_TITLE), body=_text(data, 'body', MAX_POST_BODY))

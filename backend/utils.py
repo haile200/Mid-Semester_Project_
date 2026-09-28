@@ -113,6 +113,29 @@ def clean_correction_text(text):
     return text
 
 
+MAX_NOTES_LABEL_LENGTH = 20
+MAX_NOTES_TITLE_LENGTH = 255
+# Suggestions help start a post; longer text is already a post and only needs "Check writing".
+MAX_NOTES_TEXT_LENGTH = 500
+
+
+def clean_post_notes(style, grade, title, body):
+    """Returns (style, grade, title, body) trimmed, for a post suggestion. Raises ValueError otherwise."""
+    values = ['' if value is None else value for value in (style, grade, title, body)]
+    if not all(isinstance(value, str) for value in values):
+        raise ValueError('Invalid input types')
+    style, grade, title, body = (value.strip() for value in values)
+    if not style or not grade:
+        raise ValueError('Style and grade are required')
+    if len(style) > MAX_NOTES_LABEL_LENGTH or len(grade) > MAX_NOTES_LABEL_LENGTH:
+        raise ValueError(f'Style and grade must be {MAX_NOTES_LABEL_LENGTH} characters or fewer')
+    if len(title) > MAX_NOTES_TITLE_LENGTH:
+        raise ValueError(f'Title must be {MAX_NOTES_TITLE_LENGTH} characters or fewer')
+    if len(body) > MAX_NOTES_TEXT_LENGTH:
+        raise ValueError(f'Post suggestions work from up to {MAX_NOTES_TEXT_LENGTH} characters of text')
+    return style, grade, title, body
+
+
 BLOCK_TAG_RE = re.compile(r'</?(?:p|br|div|li|ul|ol|h[1-6])\b[^>]*>', re.IGNORECASE)
 TAG_RE = re.compile(r'<[^>]+>')
 

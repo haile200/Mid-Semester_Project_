@@ -137,7 +137,68 @@ COMMENT_IDEAS = {
     ],
 }
 
-CELEBRATE_WORDS = ('sent', 'send', 'flash', 'flashed', 'finally', 'topped')
+# Keyed by the composer's style names, lowercased. Every body names the grade and the style,
+# so it fits any title, including one the author wrote.
+POST_DRAFTS = {
+    'bouldering': {
+        'titles': [
+            'Finally sent a {grade} boulder',
+            'Projecting a {grade} problem',
+            'Bouldering session on {grade}s',
+            'One more go on the {grade}',
+        ],
+        'bodies': [
+            'Spent the session on a {grade} boulder and finally stuck the crux move. Quiet feet made all the difference.',
+            'Worked a {grade} boulder problem today. Still falling off the top move, but every attempt got a little closer.',
+            'Good bouldering session on {grade} problems: short rests, lots of attempts and one clean send to finish.',
+            'Tried a new {grade} boulder with a big move off a crimp. Not done yet, but the beta is starting to make sense.',
+        ],
+    },
+    'lead': {
+        'titles': [
+            'Clipped the chains on a {grade}',
+            'Lead day on a {grade}',
+            'Working a {grade} lead route',
+            'Onsight attempt on a {grade}',
+        ],
+        'bodies': [
+            'Lead climbed a {grade} today and clipped the chains on my second try. The pump at the last bolt was real.',
+            'Working a {grade} lead route. The moves are fine, it is the clipping stance near the top that stops me.',
+            'Great lead session on a {grade}. Stayed calm between bolts and kept my breathing steady the whole way up.',
+            'Took my first real fall on lead on a {grade} today. Scary for a second, then it felt like progress.',
+        ],
+    },
+    'top rope': {
+        'titles': [
+            'Top rope laps on a {grade}',
+            'Clean run on a {grade}',
+            'Working a {grade} on top rope',
+            'Endurance day on {grade}s',
+        ],
+        'bodies': [
+            'Did a few top rope laps on a {grade} to work on footwork. Smooth and steady by the last one.',
+            'Worked a {grade} on top rope today and linked it clean on the third go. Next step is trying it on lead.',
+            'Spent the session on top rope, running a {grade} again and again to build endurance.',
+            'Tried a {grade} on top rope that felt impossible at first. Broke it into sections and it finally went.',
+        ],
+    },
+    'general': {
+        'titles': [
+            'Climbing a {grade} today',
+            'Working a {grade}',
+            'Good session on a {grade}',
+            'Progress on a {grade}',
+        ],
+        'bodies': [
+            'Spent the session on a {grade} and made real progress. One move at a time.',
+            'Worked a {grade} today. Not there yet, but getting closer with every attempt.',
+            'Good day climbing a {grade}. Tired arms, happy head.',
+            'Tried a {grade} that is at my limit. Learned a lot from every fall.',
+        ],
+    },
+}
+
+CELEBRATE_WORDS =('sent', 'send', 'flash', 'flashed', 'finally', 'topped')
 ENCOURAGE_WORDS = ('project', 'fell', 'falling', 'working', 'close', 'almost')
 
 
@@ -156,6 +217,10 @@ def pick_voice(personality):
         if any(re.search(rf'\b{re.escape(word)}s?\b', text) for word in keywords):
             return voice
     return 'general'
+
+
+def _fill(templates, key, grade):
+    return templates[stable_index(key, len(templates))].format(grade=grade)
 
 
 def _fix_word(match):
@@ -206,3 +271,12 @@ class OfflineBrain(Brain):
     def write_reply(self, personality, context, seed):
         replies = VOICES[pick_voice(personality)]['replies']
         return replies[stable_index(f'{personality}|{context}|{seed}', len(replies))]
+
+    def suggest_post(self, notes, seed):
+        # Templates cannot improve what the author wrote, so only the missing parts are filled in.
+        drafts = POST_DRAFTS.get(notes.style.lower(), POST_DRAFTS['general'])
+        key = f'{notes.style}|{notes.grade}|{seed}'
+        return GeneratedPost(
+            title=notes.title or _fill(drafts['titles'], f'{key}|title', notes.grade),
+            body=notes.body or _fill(drafts['bodies'], f'{key}|body', notes.grade),
+        )

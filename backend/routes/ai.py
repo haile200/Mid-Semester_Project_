@@ -43,6 +43,22 @@ def create_correction():
     return jsonify({'text': corrected}), 200
 
 
+@ai_bp.route('/post-suggestions', methods=['POST'])
+@login_required
+@ai_rate_limited
+def create_post_suggestion():
+    data = request.get_json(silent=True)
+    if not data or not isinstance(data, dict):
+        return jsonify({'message': 'Invalid JSON payload'}), 400
+
+    try:
+        draft = services.suggest_post(data.get('style'), data.get('grade'), data.get('title'), data.get('body'))
+    except ValueError as error:
+        return jsonify({'message': str(error)}), 400
+
+    return jsonify({'title': draft.title, 'body': draft.body}), 200
+
+
 @ai_bp.route('/posts/<int:post_id>/comment-ideas', methods=['GET'])
 @login_required
 @ai_rate_limited

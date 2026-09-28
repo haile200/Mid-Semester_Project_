@@ -35,3 +35,6 @@ class FallbackBrain(Brain):
 
     def write_reply(self, personality, context, seed):
         return self._call('write_reply', personality, context, seed)
+
+    def suggest_post(self, notes, seed):
+        return self._call('suggest_post', notes, seed)

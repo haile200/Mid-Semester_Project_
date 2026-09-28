@@ -1,14 +1,16 @@
+import random
 import secrets
 from contextlib import closing
 from datetime import datetime
 
 import mysql.connector
 
-from brain import get_brain
+from brain import PostNotes, get_brain
 from db import get_db
 from utils import (
     clean_comment_body,
     clean_correction_text,
+    clean_post_notes,
     clean_report,
     fetchall_dict,
     fetchone_dict,
@@ -325,6 +327,13 @@ def create_comment(post_id, author_id, body, parent_id=None, strict=False):
 def correct_text(text):
     """Returns the text with spelling and capitalization fixed. Raises ValueError for invalid input."""
     return get_brain().suggest_correction(clean_correction_text(text))
+
+
+def suggest_post(style, grade, title, body):
+    """A draft title and body built from what the author has so far. Raises ValueError for invalid input."""
+    notes = PostNotes(*clean_post_notes(style, grade, title, body))
+    # A fresh seed per request, so asking again gives a different draft.
+    return get_brain().suggest_post(notes, random.randrange(1_000_000))
 
 
 def comment_ideas(post_id):

@@ -4,7 +4,7 @@ import sys
 
 import pytest
 
-from brain import Brain, GeneratedPost, ToxicityResult, get_brain
+from brain import Brain, GeneratedPost, PostNotes, ToxicityResult, get_brain
 from brain.offline import OfflineBrain, pick_voice
 from utils import MAX_COMMENT_LENGTH
 
@@ -239,6 +239,75 @@ def test_write_reply_varies_with_the_seed():
     assert len(replies) > 1
 
 
+# ---- suggest_post ----
+
+STYLE_WORDS = {'Bouldering': 'boulder', 'Lead': 'lead', 'Top rope': 'top rope'}
+
+
+@pytest.mark.parametrize('style', STYLE_WORDS)
+def test_suggest_post_starts_a_draft_about_the_chosen_style_and_grade(style):
+    # Arrange
+    notes = PostNotes(style=style, grade='V4', title='', body='')
+
+    # Act
+    result = brain.suggest_post(notes, seed=3)
+
+    # Assert
+    text = f'{result.title} {result.body}'
+    assert 0 < len(result.title) <= MAX_TITLE_LENGTH
+    assert result.body.strip()
+    assert 'V4' in text
+    assert STYLE_WORDS[style] in text.lower()
+
+
+def test_suggest_post_handles_a_style_it_has_no_templates_for():
+    # Arrange
+    notes = PostNotes(style='Trad', grade='5.10a', title='', body='')
+
+    # Act
+    result = brain.suggest_post(notes, seed=0)
+
+    # Assert
+    assert result.title and result.body
+    assert '5.10a' in f'{result.title} {result.body}'
+
+
+def test_suggest_post_keeps_what_the_author_already_wrote():
+    # Arrange
+    notes = PostNotes(style='Lead', grade='6c+', title='My first lead', body='Clipped every bolt.')
+
+    # Act
+    result = brain.suggest_post(notes, seed=5)
+
+    # Assert
+    assert result == GeneratedPost(title='My first lead', body='Clipped every bolt.')
+
+
+def test_suggest_post_fills_only_the_missing_part():
+    # Arrange: a title but no text yet. The braces would break str.format if the author's text went through it.
+    notes = PostNotes(style='Bouldering', grade='V5', title='Crimpy {nightmare}', body='')
+
+    # Act
+    result = brain.suggest_post(notes, seed=5)
+
+    # Assert
+    assert result.title == 'Crimpy {nightmare}'
+    assert 'V5' in result.body
+
+
+def test_suggest_post_is_deterministic_for_the_same_seed_and_varies_across_seeds():
+    # Arrange
+    notes = PostNotes(style='Bouldering', grade='V4', title='', body='')
+
+    # Act
+    repeated = [brain.suggest_post(notes, seed=9) for _ in range(2)]
+    drafts = {brain.suggest_post(notes, seed) for seed in range(10)}
+
+    # Assert
+    assert repeated[0] == repeated[1]
+    assert len(drafts) > 1
+
+
 # ---- Properties across many inputs ----
 
 @pytest.mark.parametrize('personality', [TRAD, GYM, OTHER])
@@ -253,6 +322,19 @@ def test_generated_text_never_trips_the_toxicity_check(personality):
 
     # Act
     blocked = [text for text in outputs if not brain.check_toxicity(text).allowed]
+
+    # Assert
+    assert blocked == []
+
+
+@pytest.mark.parametrize('style', [*STYLE_WORDS, 'Trad'])
+def test_suggested_drafts_never_trip_the_toxicity_check(style):
+    # Arrange: a draft the author applies still has to pass the check when they publish.
+    drafts = [brain.suggest_post(PostNotes(style, 'V4', '', ''), seed) for seed in range(50)]
+
+    # Act
+    blocked = [text for draft in drafts for text in (draft.title, draft.body)
+               if not brain.check_toxicity(text).allowed]
 
     # Assert
     assert blocked == []

@@ -8,6 +8,7 @@ CALLS = {
     'check_toxicity': ('text',),
     'write_post': ('personality', 1),
     'write_reply': ('personality', 'context', 1),
+    'suggest_post': ('notes', 1),
 }
 
 
@@ -27,6 +28,7 @@ class Answering:
     def check_toxicity(self, *args): return self._answer('check_toxicity', *args)
     def write_post(self, *args): return self._answer('write_post', *args)
     def write_reply(self, *args): return self._answer('write_reply', *args)
+    def suggest_post(self, *args): return self._answer('suggest_post', *args)
 
 
 class Failing(Answering):

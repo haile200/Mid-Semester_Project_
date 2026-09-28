@@ -3,13 +3,13 @@ from functools import lru_cache
 
 from config import Config
 
-from .base import Brain, GeneratedPost, ToxicityResult
+from .base import Brain, GeneratedPost, PostNotes, ToxicityResult
 from .fallback import FallbackBrain
 from .gemini import GeminiBrain, build_client
 from .offline import OfflineBrain
 
 __all__ = [
-    'Brain', 'GeneratedPost', 'ToxicityResult', 'OfflineBrain', 'GeminiBrain', 'FallbackBrain',
+    'Brain', 'GeneratedPost', 'PostNotes', 'ToxicityResult', 'OfflineBrain', 'GeminiBrain', 'FallbackBrain',
     'select_mode', 'get_brain',
 ]
 

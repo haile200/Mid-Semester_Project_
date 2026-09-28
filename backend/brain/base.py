@@ -15,6 +15,15 @@ class GeneratedPost:
     body: str
 
 
+@dataclass(frozen=True)
+class PostNotes:
+    """What an author has chosen or written so far. Title and body may be empty."""
+    style: str
+    grade: str
+    title: str
+    body: str
+
+
 class Brain(ABC):
     """The contract every AI provider implements. Callers depend on this class, never on a provider.
 
@@ -40,3 +49,7 @@ class Brain(ABC):
     @abstractmethod
     def write_reply(self, personality: str, context: str, seed: int) -> str:
         """Writes a reply to the context text in the voice of the personality."""
+
+    @abstractmethod
+    def suggest_post(self, notes: PostNotes, seed: int) -> GeneratedPost:
+        """Drafts a post for a person, building on what they started. The caller supplies the randomness via seed."""

@@ -34,6 +34,9 @@ class UnreachableModel(OfflineBrain):
     def propose_comments(self, post_title, post_body):
         raise TimeoutError('read timed out')
 
+    def suggest_post(self, notes, seed):
+        raise TimeoutError('read timed out')
+
 
 # ---- /api/corrections ----
 
@@ -139,6 +142,92 @@ def test_comment_ideas_fall_back_to_offline_when_the_model_is_down(client, monke
     # Assert
     assert response.status_code == 200
     assert len(response.get_json()['comments']) == 3
+
+
+# ---- /api/post-suggestions ----
+
+def suggest(client, payload):
+    return client.post('/api/post-suggestions', json=payload)
+
+
+def test_post_suggestion_requires_login(client):
+    # Arrange: nobody is logged in
+
+    # Act
+    response = suggest(client, {'style': 'Bouldering', 'grade': 'V4'})
+
+    # Assert
+    assert response.status_code == 401
+
+
+def test_post_suggestion_returns_a_draft_for_the_style_and_grade(client):
+    # Arrange
+    log_in(client)
+
+    # Act
+    response = suggest(client, {'style': 'Bouldering', 'grade': 'V4', 'title': '', 'body': ''})
+
+    # Assert
+    draft = response.get_json()
+    assert response.status_code == 200
+    assert set(draft) == {'title', 'body'}
+    assert 'V4' in f"{draft['title']} {draft['body']}"
+
+
+def test_post_suggestion_keeps_what_the_author_wrote(client):
+    # Arrange
+    log_in(client)
+
+    # Act
+    response = suggest(client, {'style': 'Lead', 'grade': '6c+', 'title': 'First lead', 'body': 'Clipped every bolt.'})
+
+    # Assert
+    assert response.get_json() == {'title': 'First lead', 'body': 'Clipped every bolt.'}
+
+
+@pytest.mark.parametrize('payload, message', [
+    ({}, 'Invalid JSON payload'),
+    ({'grade': 'V4'}, 'Style and grade are required'),
+    ({'style': 1, 'grade': 'V4'}, 'Invalid input types'),
+    ({'style': 'Lead', 'grade': 'V4', 'body': 'x' * 501}, 'Post suggestions work from up to 500 characters of text'),
+])
+def test_post_suggestion_rejects_bad_input(client, payload, message):
+    # Arrange
+    log_in(client)
+
+    # Act
+    response = suggest(client, payload)
+
+    # Assert
+    assert response.status_code == 400
+    assert response.get_json() == {'message': message}
+
+
+def test_post_suggestion_falls_back_to_offline_when_the_model_is_down(client, monkeypatch):
+    # Arrange
+    log_in(client)
+    brain = FallbackBrain(UnreachableModel(), OfflineBrain(), lambda op, error: None)
+    monkeypatch.setattr(services, 'get_brain', lambda fallback=True: brain)
+
+    # Act
+    response = suggest(client, {'style': 'Top rope', 'grade': '6b', 'title': '', 'body': ''})
+
+    # Assert
+    assert response.status_code == 200
+    assert '6b' in f"{response.get_json()['title']} {response.get_json()['body']}"
+
+
+def test_post_suggestion_shares_the_ai_request_budget(client, monkeypatch):
+    # Arrange: one request allowed per minute, already used by a correction.
+    monkeypatch.setattr(routes.ai, 'ai_limiter', SlidingWindowLimiter(1, 60))
+    log_in(client)
+    correct(client, {'text': 'one'})
+
+    # Act
+    response = suggest(client, {'style': 'Bouldering', 'grade': 'V4'})
+
+    # Assert
+    assert response.status_code == 429
 
 
 # ---- Rate limiting ----
