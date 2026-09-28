@@ -8,8 +8,9 @@ import re
 from . import prompts
 from .base import Brain, GeneratedPost, ToxicityResult
 
-# The Gemini API rejects deadlines under 10 seconds; this still fails well before gunicorn's 30s limit.
-TIMEOUT_MS = 10000
+# The Gemini API rejects deadlines under 10 s, and corrections alone take 8-12 s. Each request makes
+# one model call, so 15 s still fails well before gunicorn's 30 s worker timeout.
+TIMEOUT_MS = 15000
 MAX_TITLE = 100
 MAX_POST_BODY = 1000
 MAX_REPLY = 500

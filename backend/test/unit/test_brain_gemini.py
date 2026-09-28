@@ -244,4 +244,4 @@ def test_build_client_sets_the_timeout(monkeypatch):
     # Assert
     assert result == 'client'
     assert received['api_key'] == 'a-key'
-    assert received['http_options'].timeout == TIMEOUT_MS == 10000
+    assert received['http_options'].timeout == TIMEOUT_MS == 15000
