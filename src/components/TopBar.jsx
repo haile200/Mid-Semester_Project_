@@ -39,6 +39,12 @@ export default function TopBar({ currentUser, onLogout }) {
                     <Button className="topbar-nav-button" onClick={() => navigate('/')}>Home</Button>
                     <Button className="topbar-nav-button" onClick={() => navigate('/users')}>Community</Button>
                     <Button className="topbar-nav-button topbar-nav-button--wide-only" onClick={() => navigate('/about')}>About</Button>
+                    {/* A convenience only: the server refuses admin requests from anyone else with 403. */}
+                    {currentUser?.is_admin && (
+                        <Button className="topbar-nav-button topbar-admin-button" onClick={() => navigate('/admin')} data-cy="admin-link">
+                            Admin
+                        </Button>
+                    )}
 
                     {currentUser ? (
                         <Box className="topbar-account">

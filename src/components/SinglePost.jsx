@@ -9,13 +9,17 @@ import CheckIcon from '@mui/icons-material/Check';
 import DOMPurify from 'dompurify';
 import Avatar from './Avatar';
 import CommentThread from './CommentThread';
+import ReportPost from './ReportPost';
 import { climbingBadges } from '../theme';
 import { getTimeAgo } from '../timeAgo';
 import './SinglePost.css';
 
-export default function SinglePost({ postId, title, author, body, imageUrl, createdAt, canComment }) {
+export default function SinglePost({ postId, authorId, currentUserId, title, author, body, imageUrl, createdAt, canComment }) {
     // "Beta" is climber-speak for route advice; the thread loads only when opened.
     const [isThreadOpen, setIsThreadOpen] = useState(false);
+    const [isReportOpen, setIsReportOpen] = useState(false);
+    // The server refuses reports on your own post, so the button is not offered there.
+    const canReport = Boolean(currentUserId) && String(currentUserId) !== String(authorId);
 
     const badges = climbingBadges(`${title}|${author}`);
     const disciplineClass = `post-badge--${badges.discipline.label.toLowerCase().replace(/\s+/g, '-')}`;
@@ -73,6 +77,16 @@ export default function SinglePost({ postId, title, author, body, imageUrl, crea
             />
 
             <Box className="post-footer">
+                {canReport && (
+                    <Button
+                        size="small"
+                        className="post-report-button"
+                        onClick={() => setIsReportOpen((open) => !open)}
+                        data-cy="report-toggle"
+                    >
+                        Report
+                    </Button>
+                )}
                 <Box className="post-footer-spacer" />
                 <Button
                     startIcon={<LightbulbOutlinedIcon />}
@@ -83,6 +97,8 @@ export default function SinglePost({ postId, title, author, body, imageUrl, crea
                     {isThreadOpen ? 'Hide beta' : 'Show beta'}
                 </Button>
             </Box>
+
+            {isReportOpen && <ReportPost postId={postId} onClose={() => setIsReportOpen(false)} />}
 
             {isThreadOpen && <CommentThread postId={postId} canComment={canComment} />}
         </Card>

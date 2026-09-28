@@ -101,6 +101,11 @@
     background-color: #444441;
 }
 
+.MuiButton-root.topbar-admin-button {
+    color: #F0997B;
+    font-weight: 700;
+}
+
 .MuiButton-root.topbar-nav-button--wide-only {
     display: none;
 }

@@ -9,6 +9,7 @@ from db import get_db
 from utils import (
     clean_comment_body,
     clean_correction_text,
+    clean_report,
     fetchall_dict,
     fetchone_dict,
     hash_password,
@@ -25,6 +26,14 @@ class ContentRejected(ValueError):
 
 class ModerationUnavailable(Exception):
     """The moderation check itself failed. Only strict mode, used by the bot worker, raises this."""
+
+
+class AccountBanned(Exception):
+    """Correct credentials, but the account is banned."""
+
+
+class AlreadyReported(Exception):
+    """This user has already reported this post."""
 
 
 def _ensure_publishable(text, strict=False):
@@ -106,22 +115,28 @@ def upsert_bot(name, email, bio, personality):
 
 
 def authenticate(email, password):
-    """Check credentials. Returns the user dict on success, None otherwise."""
+    """Check credentials. Returns the user dict on success, None otherwise.
+
+    Raises AccountBanned only after the password matched, so a ban is never revealed to a guesser.
+    """
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute(
-            "SELECT id, name, email, password, profile_picture FROM users WHERE email = %s",
+            "SELECT id, name, email, password, profile_picture, is_admin, banned_at FROM users WHERE email = %s",
             (email,)
         )
         user = fetchone_dict(cursor)
 
     if not user or not verify_password(password, user['password']):
         return None
+    if user['banned_at'] is not None:
+        raise AccountBanned()
 
     return {
         'id': user['id'],
         'name': user['name'],
         'email': user['email'],
-        'profile_picture': user['profile_picture']
+        'profile_picture': user['profile_picture'],
+        'is_admin': bool(user['is_admin']),
     }
 
 
@@ -138,21 +153,25 @@ def create_session(user_id):
 
 
 def get_user_by_session(token):
-    """Resolve a session token to its user dict, or None if invalid."""
+    """Resolve a session token to its user dict, or None if invalid or the account is banned."""
     if not token:
         return None
 
     with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
         cursor.execute(
             """
-            SELECT users.id, users.name, users.email, users.profile_picture
+            SELECT users.id, users.name, users.email, users.profile_picture, users.is_admin
             FROM sessions
             JOIN users ON sessions.user_id = users.id
-            WHERE sessions.token = %s
+            WHERE sessions.token = %s AND users.banned_at IS NULL
             """,
             (token,)
         )
-        return fetchone_dict(cursor)
+        user = fetchone_dict(cursor)
+
+    if user:
+        user['is_admin'] = bool(user['is_admin'])
+    return user
 
 
 def delete_session(token):
@@ -308,6 +327,170 @@ def comment_ideas(post_id):
     return get_brain().propose_comments(post[0], post[1])
 
 
+# ---- Moderation ----
+
+def create_report(post_id, reporter_id, reason, note):
+    """Store a report and return its id.
+
+    Raises ValueError for bad input or reporting your own post, LookupError if the post is missing,
+    and AlreadyReported for a second report by the same user.
+    """
+    reason, note = clean_report(reason, note)
+
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT author_id FROM posts WHERE id = %s", (post_id,))
+        post = cursor.fetchone()
+        if post is None:
+            raise LookupError('Post not found')
+        if post[0] == reporter_id:
+            raise ValueError('You cannot report your own post')
+
+        cursor.execute("SELECT 1 FROM reports WHERE post_id = %s AND reporter_id = %s", (post_id, reporter_id))
+        if cursor.fetchone():
+            raise AlreadyReported('You already reported this post')
+
+        cursor.execute(
+            "INSERT INTO reports (post_id, reporter_id, reason, note) VALUES (%s, %s, %s, %s)",
+            (post_id, reporter_id, reason, note)
+        )
+        conn.commit()
+        return cursor.lastrowid
+
+
+def list_open_reports():
+    """Open reports grouped by post, most-reported first."""
+    rows = _fetch_all(
+        """
+        SELECT
+            reports.id, reports.post_id, reports.reason, reports.note, reports.created_at,
+            reporters.name AS reporter_name,
+            posts.title, posts.body, posts.created_at AS post_created_at,
+            authors.id AS author_id, authors.name AS author_name,
+            authors.is_bot AS author_is_bot, authors.is_admin AS author_is_admin,
+            authors.banned_at AS author_banned_at
+        FROM reports
+        JOIN posts ON reports.post_id = posts.id
+        JOIN users AS authors ON posts.author_id = authors.id
+        JOIN users AS reporters ON reports.reporter_id = reporters.id
+        WHERE reports.status = 'open'
+        ORDER BY reports.created_at, reports.id
+        """,
+        ()
+    )
+
+    groups = {}
+    for row in rows:
+        group = groups.setdefault(row['post_id'], {
+            'post': {
+                'id': row['post_id'],
+                'title': row['title'],
+                'body': row['body'],
+                'created_at': row['post_created_at'],
+                'author': {
+                    'id': row['author_id'],
+                    'name': row['author_name'],
+                    'is_bot': bool(row['author_is_bot']),
+                    'is_admin': bool(row['author_is_admin']),
+                    'is_banned': row['author_banned_at'] is not None,
+                },
+            },
+            'reports': [],
+        })
+        group['reports'].append({
+            'id': row['id'],
+            'reason': row['reason'],
+            'note': row['note'],
+            'reporter_name': row['reporter_name'],
+            'created_at': row['created_at'],
+        })
+
+    return sorted(groups.values(), key=lambda group: -len(group['reports']))
+
+
+def dismiss_reports(post_id, moderator_id):
+    """Mark a post's open reports dismissed. Returns how many, or None if the post does not exist."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT 1 FROM posts WHERE id = %s", (post_id,))
+        if cursor.fetchone() is None:
+            return None
+        cursor.execute(
+            """
+            UPDATE reports SET status = 'dismissed', reviewed_by = %s, reviewed_at = CURRENT_TIMESTAMP
+            WHERE post_id = %s AND status = 'open'
+            """,
+            (moderator_id, post_id)
+        )
+        conn.commit()
+        return cursor.rowcount
+
+
+def delete_post(post_id):
+    """Delete a post; its comments and reports go with it. Returns False if it did not exist."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("DELETE FROM posts WHERE id = %s", (post_id,))
+        conn.commit()
+        return cursor.rowcount > 0
+
+
+def _moderation_target(cursor, user_id):
+    cursor.execute("SELECT id, name, is_admin, banned_at FROM users WHERE id = %s", (user_id,))
+    user = fetchone_dict(cursor)
+    if user is None:
+        raise LookupError('User not found')
+    return user
+
+
+def ban_user(user_id, admin_id):
+    """Ban a user and end all their sessions. Safe to repeat.
+
+    Raises LookupError if the user is missing, ValueError for yourself or another admin.
+    """
+    if user_id == admin_id:
+        raise ValueError('You cannot ban yourself')
+
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        user = _moderation_target(cursor, user_id)
+        if user['is_admin']:
+            raise ValueError('Admins cannot be banned. Revoke their admin rights first.')
+        if user['banned_at'] is None:
+            cursor.execute("UPDATE users SET banned_at = CURRENT_TIMESTAMP WHERE id = %s", (user_id,))
+        cursor.execute("DELETE FROM sessions WHERE user_id = %s", (user_id,))
+        conn.commit()
+    return {'id': user['id'], 'name': user['name'], 'banned': True}
+
+
+def unban_user(user_id):
+    """Lift a ban. Safe to repeat. Raises LookupError if the user is missing."""
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        user = _moderation_target(cursor, user_id)
+        cursor.execute("UPDATE users SET banned_at = NULL WHERE id = %s", (user_id,))
+        conn.commit()
+    return {'id': user['id'], 'name': user['name'], 'banned': False}
+
+
+def set_admin(email, is_admin):
+    """Grant or revoke admin rights by email and return the user's name.
+
+    Raises LookupError for an unknown email, ValueError when granting to a bot or a banned user.
+    """
+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:
+        cursor.execute("SELECT id, name, is_bot, banned_at FROM users WHERE email = %s", (email,))
+        user = fetchone_dict(cursor)
+        if user is None:
+            raise LookupError(f'No user with email {email}')
+        if is_admin and user['is_bot']:
+            raise ValueError('Bots cannot be admins')
+        if is_admin and user['banned_at'] is not None:
+            raise ValueError('Banned users cannot be admins')
+        cursor.execute("UPDATE users SET is_admin = %s WHERE id = %s", (1 if is_admin else 0, user['id']))
+        conn.commit()
+    return user['name']
+
+
+def list_admins():
+    return _fetch_all("SELECT id, name, email FROM users WHERE is_admin = 1 ORDER BY id", ())
+
+
 # ---- Bot worker ----
 
 def _as_datetime(value):
@@ -337,7 +520,7 @@ def list_bot_activity(since):
             (SELECT COUNT(*) FROM posts WHERE author_id = users.id AND created_at >= %s)
                 + (SELECT COUNT(*) FROM comments WHERE author_id = users.id AND created_at >= %s) AS recent_actions
         FROM users
-        WHERE users.is_bot = 1
+        WHERE users.is_bot = 1 AND users.banned_at IS NULL
         ORDER BY users.id
         """,
         (since, since)

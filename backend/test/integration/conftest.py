@@ -22,7 +22,9 @@ CREATE TABLE users (
     profile_picture TEXT DEFAULT '',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_bot INTEGER NOT NULL DEFAULT 0,
-    personality TEXT
+    personality TEXT,
+    is_admin INTEGER NOT NULL DEFAULT 0,
+    banned_at TIMESTAMP
 );
 
 CREATE TABLE sessions (
@@ -54,6 +56,19 @@ CREATE TABLE comments (
     parent_id INTEGER REFERENCES comments(id) ON DELETE CASCADE,
     body TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    reporter_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason TEXT NOT NULL,
+    note TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at TIMESTAMP,
+    UNIQUE (post_id, reporter_id)
 );
 """
 

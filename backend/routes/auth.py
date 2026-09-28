@@ -30,6 +30,17 @@ def login_required(view):
     return wrapped_view
 
 
+def admin_required(view):
+    """401 when not logged in, 403 when logged in without admin rights."""
+    @wraps(view)
+    @login_required
+    def wrapped_view(*args, **kwargs):
+        if not g.user.get('is_admin'):
+            return jsonify({'message': 'Admin access required'}), 403
+        return view(*args, **kwargs)
+    return wrapped_view
+
+
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
     data = request.get_json(silent=True)  # Use silent=True to avoid exceptions on invalid JSON
@@ -82,7 +93,10 @@ def login():
     if not email or not plain_pass:
         return jsonify({'message': 'Email and password are required'}), 400
 
-    user = services.authenticate(email, plain_pass)
+    try:
+        user = services.authenticate(email, plain_pass)
+    except services.AccountBanned:
+        return jsonify({'message': 'This account has been banned'}), 403
     if not user:
         return jsonify({'message': 'Invalid credentials'}), 401
 

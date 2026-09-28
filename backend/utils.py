@@ -79,6 +79,24 @@ def sanitize_post_html(html):
     )
 
 
+REPORT_REASONS = ('spam', 'harassment', 'hate', 'other')
+MAX_REPORT_NOTE_LENGTH = 300
+
+
+def clean_report(reason, note):
+    """Returns (reason, note or None). Raises ValueError for an unknown reason or an invalid note."""
+    if not isinstance(reason, str) or reason not in REPORT_REASONS:
+        raise ValueError('Choose a reason: spam, harassment, hate or other')
+    if note is None:
+        note = ''
+    if not isinstance(note, str):
+        raise ValueError('Invalid input types')
+    note = note.strip()
+    if len(note) > MAX_REPORT_NOTE_LENGTH:
+        raise ValueError(f'Note must be {MAX_REPORT_NOTE_LENGTH} characters or fewer')
+    return reason, note or None
+
+
 MAX_CORRECTION_LENGTH = 5000
 
 

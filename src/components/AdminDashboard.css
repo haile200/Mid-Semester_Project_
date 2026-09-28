@@ -1,0 +1,217 @@
+/* Selectors on MUI components are paired with the MUI root class so they
+   outrank the styles MUI injects at runtime, which load after this file. */
+
+.admin-page {
+    min-height: 100vh;
+    padding: 16px 0;
+    background-color: #FAF9F5;
+}
+
+@media (min-width: 600px) {
+    .admin-page {
+        padding: 32px 0;
+    }
+}
+
+.admin-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 16px;
+}
+
+.MuiTypography-root.admin-title {
+    font-weight: 700;
+    color: #2C2C2A;
+}
+
+.MuiTypography-root.admin-subtitle {
+    margin-top: -8px;
+    font-size: 14px;
+    color: #5F5E5A;
+}
+
+.MuiTypography-root.admin-notice {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    background-color: #E1F5EE;
+    color: #085041;
+}
+
+.admin-status {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+}
+
+.MuiCircularProgress-root.admin-spinner {
+    color: #D85A30;
+}
+
+.admin-denied {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    background-color: white;
+}
+
+.MuiTypography-root.admin-denied-text,
+.MuiTypography-root.admin-empty {
+    font-size: 14px;
+    color: #5F5E5A;
+}
+
+.admin-denied-link {
+    font-size: 14px;
+    font-weight: 700;
+    color: #D85A30;
+    text-decoration: none;
+}
+
+/* One reported post */
+.admin-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #EDEBE4;
+    background-color: white;
+    box-shadow: 0 2px 8px rgba(44, 44, 42, 0.04);
+}
+
+.admin-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.MuiTypography-root.admin-post-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #2C2C2A;
+    overflow-wrap: anywhere;
+}
+
+.MuiChip-root.admin-count-chip {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    background-color: #FDECEA;
+    color: #B71C1C;
+}
+
+.admin-author-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.MuiTypography-root.admin-author {
+    font-size: 13px;
+    font-weight: 700;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.admin-tag {
+    height: 18px;
+    font-size: 10px;
+    font-weight: 700;
+    background-color: #F1EFE8;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.admin-tag--banned {
+    background-color: #2C2C2A;
+    color: #F1EFE8;
+}
+
+.MuiTypography-root.admin-time {
+    font-size: 11px;
+    color: #5F5E5A;
+}
+
+.MuiTypography-root.admin-excerpt {
+    font-size: 13px;
+    color: #2C2C2A;
+    overflow-wrap: anywhere;
+}
+
+/* The reports on it */
+.admin-reports {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #FAF9F5;
+}
+
+.admin-report {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.MuiChip-root.admin-reason {
+    height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    background-color: #F1EFE8;
+    color: #2C2C2A;
+}
+
+.MuiChip-root.admin-reason--harassment,
+.MuiChip-root.admin-reason--hate {
+    background-color: #FDECEA;
+    color: #B71C1C;
+}
+
+.MuiTypography-root.admin-report-meta {
+    font-size: 12px;
+    color: #5F5E5A;
+}
+
+.MuiTypography-root.admin-report-note {
+    flex-basis: 100%;
+    font-size: 12px;
+    font-style: italic;
+    color: #2C2C2A;
+    overflow-wrap: anywhere;
+}
+
+/* Moderator actions */
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.MuiButton-root.admin-action {
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: none;
+    border-radius: 999px;
+    border: 1px solid #EDEBE4;
+    color: #2C2C2A;
+}
+
+.MuiButton-root.admin-action--danger {
+    border-color: #F5C2BE;
+    color: #B71C1C;
+}
+
+.MuiButton-root.admin-action--danger:hover {
+    background-color: #FDECEA;
+}

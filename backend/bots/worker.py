@@ -149,7 +149,7 @@ def run_tick(tick, brain, rng, pacing, log):
 
     bot = choose_bot(bots, now, pacing, rng)
     if bot is None:
-        reasons = sorted({skip_reason(b, now, pacing) for b in bots}) or ['no bots seeded']
+        reasons = sorted({skip_reason(b, now, pacing) for b in bots}) or ['no active bots (none seeded, or all banned)']
         log(f'{prefix} action=skip     all bots resting ({", ".join(reasons)})' if bots
             else f'{prefix} action=skip     {reasons[0]}')
         return 'skip'

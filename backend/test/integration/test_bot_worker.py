@@ -80,7 +80,7 @@ def test_tick_with_no_bots_skips_and_says_why(db):
 
     # Assert
     assert outcome == 'skip'
-    assert 'no bots seeded' in logs[0]
+    assert 'no active bots' in logs[0]
 
 
 def test_tick_comment_publishes_a_bot_comment_on_a_human_post(db):

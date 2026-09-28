@@ -323,6 +323,8 @@ export default function Feed() {
                                     <SinglePost
                                         key={`${post.id}-${index}`}
                                         postId={post.id}
+                                        authorId={post.userId}
+                                        currentUserId={currentUserId}
                                         canComment={Boolean(currentUserId)}
                                         title={post.title}
                                         author={post.author_name || userDetails?.name || `User ${post.userId}`}
@@ -340,6 +342,8 @@ export default function Feed() {
                                     <SinglePost
                                         key={`${post.id}-${index}`}
                                         postId={post.id}
+                                        authorId={post.userId}
+                                        currentUserId={currentUserId}
                                         canComment={Boolean(currentUserId)}
                                         title={post.title}
                                         author={post.author_name || `User ${post.userId}`}

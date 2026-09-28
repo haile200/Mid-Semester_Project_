@@ -10,6 +10,7 @@ import Profile from './components/Profile';
 import NewPost from './components/NewPost';
 // Import the About component
 import About from './components/About';
+import AdminDashboard from './components/AdminDashboard';
 import { logout } from './api';
 
 function RequireAuth({ user, children }) {
@@ -65,6 +66,7 @@ function App() {
                 
                 {/* Removed RequireAuth wrapper to allow direct access for testing */}
                 <Route path="/new-post" element={<NewPost currentUser={currentUser} />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

@@ -183,6 +183,33 @@ export const fetchCommentIdeas = async (postId) => {
     return handleResponse(response);
 };
 
+const sendJson = async (method, path, payload) => {
+    const response = await fetch(`${BASE_URL}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: payload === undefined ? undefined : JSON.stringify(payload)
+    });
+    return handleResponse(response);
+};
+
+export const reportPost = (postId, reason, note) =>
+    sendJson('POST', `/posts/${postId}/reports`, { reason, note });
+
+export const fetchReports = async () => {
+    const response = await fetch(`${BASE_URL}/admin/reports`, { credentials: 'include' });
+    return handleResponse(response);
+};
+
+export const dismissReports = (postId) =>
+    sendJson('PATCH', `/admin/posts/${postId}/reports`, { status: 'dismissed' });
+
+export const deletePostAsAdmin = (postId) => sendJson('DELETE', `/admin/posts/${postId}`);
+
+export const banUser = (userId) => sendJson('PUT', `/admin/users/${userId}/ban`);
+
+export const unbanUser = (userId) => sendJson('DELETE', `/admin/users/${userId}/ban`);
+
 export const updateProfile = async (bio, profilePicture) => {
     // We assume BASE_URL is defined at the top of your api.js file
     const response = await fetch(`${BASE_URL}/users/profile`, {
