@@ -1,0 +1,13 @@
+# The frontend image only needs package files, index.html, vite.config.js, public/ and src/.
+node_modules
+dist
+backend
+cypress
+docs
+.git
+.claude
+.env
+.env.*
+*.pem
+*.key
+*.log

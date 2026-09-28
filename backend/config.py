@@ -17,5 +17,6 @@ class Config:
     DB_PASSWORD = os.getenv('DB_PASSWORD')
     DB_NAME = os.getenv('DB_NAME')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-3.8-flash')
+    # "or", not a getenv default: docker compose passes GEMINI_MODEL="" when .env leaves it blank.
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL') or 'gemini-3.8-flash'
     BRAIN_MODE = os.getenv('BRAIN_MODE', '')

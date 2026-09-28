@@ -1,0 +1,11 @@
+# Anything copied into an image stays in it, so secrets and local environments never go in.
+.env
+.env.*
+venv/
+.venv/
+__pycache__/
+*.pyc
+.coverage
+htmlcov/
+.pytest_cache/
+*.log
