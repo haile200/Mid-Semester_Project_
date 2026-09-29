@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 
 class Config:
-    SECRET_KEY = 'replace_with_a_strong_secret_key'
     CORS_ORIGINS = [
         'http://localhost:5173',
         'http://127.0.0.1:5173',
@@ -18,7 +17,8 @@ class Config:
     DB_NAME = os.getenv('DB_NAME')
     GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
     # "or", not a getenv default: docker compose passes GEMINI_MODEL="" when .env leaves it blank.
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL') or 'gemini-3.8-flash'
+    # Its free tier allows 500 requests a day; larger models allow as few as 20.
+    GEMINI_MODEL = os.getenv('GEMINI_MODEL') or 'gemini-3.1-flash-lite'
     BRAIN_MODE = os.getenv('BRAIN_MODE', '')
     # Where the site is served; links in emails point here.
     APP_URL = (os.getenv('APP_URL') or 'http://localhost:5173').rstrip('/')

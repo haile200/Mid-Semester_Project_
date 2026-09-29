@@ -19,7 +19,6 @@ from routes.uploads import uploads_bp
 select_mode(Config.BRAIN_MODE, Config.GEMINI_API_KEY)
 
 app = Flask(__name__)
-app.secret_key = Config.SECRET_KEY
 # Flask stops reading a request body past this size and answers 413.
 app.config['MAX_CONTENT_LENGTH'] = Config.MAX_UPLOAD_MB * 1024 * 1024
 CORS(app, supports_credentials=True, origins=Config.CORS_ORIGINS)
