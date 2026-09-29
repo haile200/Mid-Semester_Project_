@@ -45,7 +45,7 @@ function Comment({ comment, canComment, onReply }) {
                     </Box>
                     <Typography className="comment-body">{comment.body}</Typography>
                     {canComment && (
-                        <Button size="small" className="comment-reply-button" onClick={() => onReply(comment)}>
+                        <Button size="small" className="comment-reply-button" onClick={() => onReply(comment)} data-cy="comment-reply">
                             Reply
                         </Button>
                     )}
@@ -154,7 +154,7 @@ export default function CommentThread({ postId, canComment }) {
             {canComment ? (
                 <Box component="form" onSubmit={handleSubmit} className="comment-form">
                     {replyTo && (
-                        <Box className="comment-replying-to">
+                        <Box className="comment-replying-to" data-cy="replying-to">
                             <Typography className="comment-replying-to-text">
                                 Replying to {replyTo.author_name}
                             </Typography>

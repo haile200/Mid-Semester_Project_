@@ -13,7 +13,9 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "cypress:run:auth": "cypress run --spec cypress/e2e/auth.cy.js",
-    "cypress:run:app": "start-server-and-test start:all \"http://localhost:5173|http-get://127.0.0.1:5000/api/health\" cypress:run:auth"
+    "cypress:run:posts": "cypress run --spec cypress/e2e/posts.cy.js",
+    "cypress:watch:posts": "cypress run --headed --spec cypress/e2e/posts.cy.js",
+    "cypress:run:app": "start-server-and-test start:all \"http://localhost:5173|http-get://127.0.0.1:5000/api/health\" cypress:run"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

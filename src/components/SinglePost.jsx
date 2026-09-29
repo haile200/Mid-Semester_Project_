@@ -29,7 +29,7 @@ export default function SinglePost({
 
     return (
         // Chalk-white card with a soft stone shadow - modern and calm like a gym wall
-        <Card className="post-card">
+        <Card className="post-card" data-cy="post-card">
             <Box className="post-header">
                 <Avatar name={author || 'User'} size={40} />
                 <Box className="post-header-text">
@@ -59,7 +59,7 @@ export default function SinglePost({
                 )}
             </Box>
 
-            <Typography variant="h6" className="post-title">
+            <Typography variant="h6" className="post-title" data-cy="post-title">
                 {title}
             </Typography>
 
@@ -69,6 +69,7 @@ export default function SinglePost({
                         src={imageUrl}
                         alt="Post attachment"
                         className="post-image"
+                        data-cy="post-image"
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                 </Box>

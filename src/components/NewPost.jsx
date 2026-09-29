@@ -141,7 +141,7 @@ export default function NewPost({ currentUser }) {
                 )}
 
                 {message && (
-                    <Typography variant="body2" className="new-post-error">
+                    <Typography variant="body2" className="new-post-error" data-cy="new-post-error">
                         {message}
                     </Typography>
                 )}
@@ -153,6 +153,7 @@ export default function NewPost({ currentUser }) {
                     size="small"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    slotProps={{ htmlInput: { 'data-cy': 'new-post-title' } }}
                     className="new-post-input"
                     disabled={!activeUser || isLoading}
                 />
@@ -283,6 +284,7 @@ export default function NewPost({ currentUser }) {
                     disabled={!activeUser || isLoading}
                     onClick={handleSubmit}
                     className="new-post-submit-button"
+                    data-cy="new-post-submit"
                 >
                     {isLoading ? 'Posting...' : 'Post climb'}
                 </Button>
