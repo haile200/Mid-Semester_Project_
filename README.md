@@ -268,14 +268,24 @@ All endpoints are under `/api`. Logged-in requests carry the `session_token` coo
 ```bash
 cd backend
 venv\Scripts\python -m pytest --cov --cov-config=.coveragerc     # 485 tests, 94% coverage
-npm run cypress:run:app                                          # end-to-end, from the project root
+```
+
+End to end, from the project root:
+
+```bash
+npm run cypress:run:app          # starts both dev servers, runs every spec, stops the servers
+npm run cypress:watch:posts      # with the dev servers running: watch the posting spec in a browser window
 ```
 
 - **Unit tests** (`backend/test/unit/`) run without a database or network: the database is mocked
   and Gemini is replaced by a fake client.
 - **Integration tests** (`backend/test/integration/`) run the real Flask routes and SQL against a
   throwaway SQLite database, so they need no MySQL server either.
-- **End to end:** a Cypress spec signs up, logs in and logs out in a real browser.
+- **End to end** (Cypress, in a real browser):
+  - `auth.cy.js` signs up, logs in, opens the profile and logs out.
+  - `posts.cy.js` publishes a post with a photo, checks that a hostile post is refused with the draft
+    kept, has a second climber like it, pick an AI comment idea and comment, and has the author
+    reply inside that comment. Each run creates its own accounts.
 - Coverage counts all backend code and must stay at 85% or more. The tests always use the offline
   brain, so they never call a paid API.
 
