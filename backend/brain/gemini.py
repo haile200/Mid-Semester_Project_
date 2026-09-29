@@ -59,6 +59,8 @@ class GeminiBrain(Brain):
             response_mime_type='application/json',
             # Short tasks do not need the model's slower step-by-step reasoning.
             thinking_config=types.ThinkingConfig(thinking_budget=0),
+            # No Python functions are offered to the model, so the SDK's function calling stays off.
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=True),
         )
         response = self._client.models.generate_content(model=self.model, contents=contents, config=config)
         # response.text is None when Gemini's own safety filter blocks the answer.

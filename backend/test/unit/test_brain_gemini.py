@@ -71,6 +71,7 @@ def test_check_toxicity_asks_for_json_with_temperature_zero_on_the_configured_mo
     assert call['config'].temperature == 0
     assert call['config'].response_mime_type == 'application/json'
     assert call['config'].thinking_config.thinking_budget == 0
+    assert call['config'].automatic_function_calling.disable is True
 
 
 @pytest.mark.parametrize('raw', [
