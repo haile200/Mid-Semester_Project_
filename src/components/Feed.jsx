@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useEffectEvent } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
@@ -21,6 +21,8 @@ import SuggestedUsers from './SuggestedUsers';
 import { fetchPosts, fetchUserDetails, toggleFollow, fetchFollowingFeed, fetchFeed, updateProfile } from '../api';
 import './Feed.css';
 
+const PAGE_SIZE = 10;
+
 export default function Feed() {
     const { userId } = useParams();
     const location = useLocation();
@@ -40,12 +42,12 @@ export default function Feed() {
         }
     }
 
-    const [posts, setPosts] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [offset, setOffset] = useState(0);
-    const [hasMore, setHasMore] = useState(true);
-    const [userDetails, setUserDetails] = useState(location.state?.userDetails || null);
+    // The loaded posts, labelled with the list they belong to (see listKey below).
+    const [list, setList] = useState({ key: null, posts: [], offset: 0, hasMore: true, error: '' });
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [loadedUser, setLoadedUser] = useState(location.state?.userDetails || null);
+    // Details loaded for another profile are never shown under this one, so nothing needs resetting.
+    const userDetails = loadedUser && String(loadedUser.id) === String(userId) ? loadedUser : null;
 
     const [feedType, setFeedType] = useState(0);
     const [openFollowList, setOpenFollowList] = useState(null);
@@ -56,48 +58,42 @@ export default function Feed() {
     const [editProfilePicture, setEditProfilePicture] = useState('');
     const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-    const limit = 10;
+    // Which list belongs on screen: a profile, the global feed or the following feed.
+    const listKey = `${userId ?? ''}|${feedType}|${currentUserId ?? ''}`;
+    // The Following feed needs an account, so a logged-out visitor sees a login prompt instead.
+    const needsLogin = !userId && feedType === 1 && !currentUserId;
+    // Posts loaded for another list are hidden, never shown under the wrong tab or profile.
+    const isCurrentList = list.key === listKey;
+    const posts = isCurrentList ? list.posts : [];
+    const hasMore = isCurrentList && list.hasMore;
+    const error = isCurrentList ? list.error : '';
+    const isLoading = !needsLogin && (!isCurrentList || isLoadingMore);
 
-    const loadPosts = async (currentOffset, isReset = false) => {
-        if (isLoading) return;
+    const fetchPage = (pageOffset) => {
+        if (userId) return fetchPosts(pageOffset, PAGE_SIZE, userId);
+        return feedType === 0 ? fetchFeed(pageOffset, PAGE_SIZE) : fetchFollowingFeed(pageOffset, PAGE_SIZE);
+    };
 
-        // Block loading ONLY if trying to access Following feed while logged out
-        if (!userId && feedType === 1 && !currentUserId) {
-            if (isReset) {
-                setPosts([]);
-                setHasMore(false);
-            }
-            return;
-        }
-
-        setIsLoading(true);
-        setError('');
-
+    const loadMorePosts = async () => {
+        const key = list.key;
+        setIsLoadingMore(true);
         try {
-            let data = [];
-            if (userId) {
-                data = await fetchPosts(currentOffset, limit, userId);
-            } else {
-                if (feedType === 0) {
-                    data = await fetchFeed(currentOffset, limit);
-                } else {
-                    data = await fetchFollowingFeed(currentOffset, limit);
-                }
-            }
-
-            if (isReset) {
-                setPosts(data);
-                setOffset(limit);
-            } else {
-                setPosts((prev) => [...prev, ...data]);
-                setOffset(currentOffset + limit);
-            }
-
-            setHasMore(data.length === limit);
+            const data = await fetchPage(list.offset);
+            // Added only if the same list is still on screen when the answer arrives.
+            setList((current) => current.key !== key ? current : {
+                ...current,
+                posts: [...current.posts, ...data],
+                offset: current.offset + PAGE_SIZE,
+                hasMore: data.length === PAGE_SIZE,
+                error: '',
+            });
         } catch (fetchError) {
-            setError(fetchError.message || 'Unable to load posts.');
+            setList((current) => current.key !== key ? current : {
+                ...current,
+                error: fetchError.message || 'Unable to load posts.',
+            });
         } finally {
-            setIsLoading(false);
+            setIsLoadingMore(false);
         }
     };
 
@@ -105,7 +101,7 @@ export default function Feed() {
         if (!userDetails) return;
         try {
             await toggleFollow(userId, userDetails.is_following);
-            setUserDetails(prev => ({
+            setLoadedUser(prev => ({
                 ...prev,
                 is_following: !prev.is_following,
                 followersCount: prev.is_following ? prev.followersCount - 1 : prev.followersCount + 1
@@ -126,7 +122,7 @@ export default function Feed() {
         try {
             await updateProfile(editBio, editProfilePicture);
 
-            setUserDetails(prev => ({
+            setLoadedUser(prev => ({
                 ...prev,
                 bio: editBio,
                 profile_picture: editProfilePicture
@@ -150,37 +146,55 @@ export default function Feed() {
         setFeedType(newValue);
     };
 
+    // Effect Events always see the latest state, so the effects below need not re-run when it changes.
+    const handleReachedBottom = useEffectEvent(() => {
+        if (!needsLogin && isCurrentList && list.hasMore && !isLoadingMore) {
+            loadMorePosts();
+        }
+    });
+
+    const fetchFirstPage = useEffectEvent(() => fetchPage(0));
+
     useEffect(() => {
         const handleScroll = () => {
             if (window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight) {
-                // Do not trigger scroll fetch if viewing Following tab while logged out
-                if (!userId && feedType === 1 && !currentUserId) return;
-
-                if (hasMore && !isLoading) {
-                    loadPosts(offset);
-                }
+                handleReachedBottom();
             }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [isLoading, hasMore, offset, feedType, userId, currentUserId]);
+    }, []);
 
     useEffect(() => {
         // Only fetch user details if viewing a specific profile
         if (userId) {
             fetchUserDetails(userId)
-                .then(user => setUserDetails(user))
+                .then(user => setLoadedUser(user))
                 .catch(err => console.error(err));
-        } else {
-            setUserDetails(null);
         }
     }, [userId]);
 
+    // The first page of the list on screen. State changes only when the answer arrives, and an answer
+    // for a list that is no longer on screen (after a quick tab or profile switch) is ignored.
     useEffect(() => {
-        setHasMore(true);
-        loadPosts(0, true);
-    }, [userId, feedType, currentUserId]);
+        if (needsLogin) return;
+        let ignore = false;
+        fetchFirstPage()
+            .then((data) => {
+                if (!ignore) {
+                    setList({ key: listKey, posts: data, offset: PAGE_SIZE, hasMore: data.length === PAGE_SIZE, error: '' });
+                }
+            })
+            .catch((fetchError) => {
+                if (!ignore) {
+                    setList({ key: listKey, posts: [], offset: 0, hasMore: false, error: fetchError.message || 'Unable to load posts.' });
+                }
+            });
+        return () => {
+            ignore = true;
+        };
+    }, [listKey, needsLogin]);
 
     return (
         <Box className="feed-page">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useEffectEvent } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -27,12 +27,7 @@ export default function Users() {
 
             // Smartly update array and filter duplicates
             setUsers((prev) => {
-                let combined = [];
-                if (isReset) {
-                    combined = data || [];
-                } else {
-                    combined = [...prev, ...(data || [])];
-                }
+                const combined = isReset ? (data || []) : [...prev, ...(data || [])];
 
                 // Convert array to Map (which prevents duplicate keys by ID) and revert to array
                 const uniqueUsers = Array.from(new Map(combined.map(user => [user.id, user])).values());
@@ -57,25 +52,32 @@ export default function Users() {
         }
     };
 
+    // Effect Events always see the latest state, so the effects below need not re-run when it changes.
+    const loadNextPage = useEffectEvent(() => {
+        if (hasMore && !isLoading) {
+            loadUsers(offset, searchTerm, false);
+        }
+    });
+
+    const searchFromStart = useEffectEvent(() => {
+        loadUsers(0, searchTerm, true);
+    });
+
     // Infinite Scroll implementation
     useEffect(() => {
         const handleScroll = () => {
             if (window.innerHeight + document.documentElement.scrollTop + 1 >= document.documentElement.scrollHeight) {
-                if (hasMore && !isLoading) {
-                    loadUsers(offset, searchTerm, false);
-                }
+                loadNextPage();
             }
         };
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [isLoading, hasMore, offset, searchTerm]);
+    }, []);
 
     // Handle search debouncing
     useEffect(() => {
-        const delayDebounce = setTimeout(() => {
-            loadUsers(0, searchTerm, true);
-        }, 300);
+        const delayDebounce = setTimeout(() => searchFromStart(), 300);
         return () => clearTimeout(delayDebounce);
     }, [searchTerm]);
 
