@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import TopBar from './components/TopBar';
 import Feed from './components/Feed';
 import Users from './components/Users';
@@ -15,27 +15,9 @@ import About from './components/About';
 import AdminDashboard from './components/AdminDashboard';
 import { logout } from './api';
 
-function RequireAuth({ user, children }) {
-    const navigate = useNavigate();
-
-    useEffect(() => {
-        if (!user) {
-            navigate('/login', { replace: true });
-        }
-    }, [user, navigate]);
-
-    return user ? children : null;
-}
-
 function App() {
-    const [currentUser, setCurrentUser] = useState(null);
-
-    useEffect(() => {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            setCurrentUser(JSON.parse(storedUser));
-        }
-    }, []);
+    // Read once before the first render, so the page never starts out as logged out.
+    const [currentUser, setCurrentUser] = useState(() => JSON.parse(localStorage.getItem('currentUser') || 'null'));
 
     const handleLogin = (user) => {
         localStorage.setItem('currentUser', JSON.stringify(user));

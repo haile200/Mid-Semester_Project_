@@ -2,7 +2,7 @@ const BASE_URL = '/api';
 
 const handleResponse = async (response) => {
     const text = await response.text();
-    let data = null;
+    let data;
 
     try {
         data = JSON.parse(text);

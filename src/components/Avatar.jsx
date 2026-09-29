@@ -1,4 +1,3 @@
-import React from 'react';
 import Box from '@mui/material/Box';
 import './Avatar.css';
 
@@ -19,7 +18,6 @@ export default function Avatar({ name = 'User', profileImage = null, size = 40 }
     };
 
     const avatarUrl = profileImage || getAvatarUrl(name);
-    const initials = getInitials(name);
 
     return (
         <Box className="avatar-circle">
