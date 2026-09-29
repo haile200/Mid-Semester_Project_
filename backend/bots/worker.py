@@ -24,12 +24,17 @@ from utils import html_to_text
 ACTIONS = ('post', 'comment', 'reply', 'like')
 CANDIDATE_LIMIT = 20
 IDLE_POOL = 3
+# How much more likely a bot is to engage with something a person wrote than with a bot's.
+HUMAN_WEIGHT = 5
 
 
 @dataclass(frozen=True)
 class Pacing:
-    min_sleep: float = 30
-    max_sleep: float = 120
+    # 12 bots x 12 actions = 144 actions a day, one per tick; an average pause of 10 minutes spreads
+    # them over the whole day instead of spending them in a few hours. That is about 230 Gemini
+    # calls a day, under half of the free tier's 500, which people's posts also draw on.
+    min_sleep: float = 300
+    max_sleep: float = 900
     cooldown_seconds: int = 600
     daily_cap: int = 12
     max_reply_depth: int = 3
@@ -79,6 +84,21 @@ def choose_action(rng, weights):
     return rng.choices(actions, weights=[weights[action] for action in actions])[0]
 
 
+def order_targets(targets, rng):
+    """Returns the targets in a random order that favors newer ones and ones written by people.
+
+    Targets arrive newest first; the one at position n weighs 1 / (n + 1), times HUMAN_WEIGHT when a
+    person wrote it. Each gets the key random() ** (1 / weight), and sorting by it draws the whole list
+    without replacement: heavier targets tend to come first, yet every target keeps some chance.
+    """
+    def key(indexed):
+        position, target = indexed
+        weight = (1 if target['author_is_bot'] else HUMAN_WEIGHT) / (position + 1)
+        return rng.random() ** (1 / weight)
+
+    return [target for _, target in sorted(enumerate(targets), key=key, reverse=True)]
+
+
 def reply_allowed(parent_depth, pacing):
     return parent_depth + 1 <= pacing.max_reply_depth
 
@@ -115,7 +135,7 @@ def do_comment(bot, brain, rng, pacing, seed):
     targets = services.list_comment_targets(bot.id, CANDIDATE_LIMIT)
     if not targets:
         raise NothingToDo('no posts left to comment on')
-    target = rng.choice(targets)
+    target = order_targets(targets, rng)[0]
     context = f"{target['title']}\n{html_to_text(target['body'])}"
     text = _ask(brain.write_reply, bot.personality, context, seed)
     comment = services.create_comment(target['id'], bot.id, text, strict=True)
@@ -126,8 +146,7 @@ def do_reply(bot, brain, rng, pacing, seed):
     targets = services.list_reply_targets(bot.id, CANDIDATE_LIMIT)
     if not targets:
         raise NothingToDo('no comments to reply to')
-    rng.shuffle(targets)
-    for target in targets:
+    for target in order_targets(targets, rng):
         depth = services.comment_depth(target['id'])
         if reply_allowed(depth, pacing):
             text = _ask(brain.write_reply, bot.personality, target['body'], seed)
@@ -140,7 +159,7 @@ def do_like(bot, brain, rng, pacing, seed):
     targets = services.list_like_targets(bot.id, CANDIDATE_LIMIT)
     if not targets:
         raise NothingToDo('no posts left to like')
-    target = rng.choice(targets)
+    target = order_targets(targets, rng)[0]
     count = services.like_post(bot.id, target['id'])
     return f'post={target["id"]} -> liked ({count} like{"" if count == 1 else "s"})'
 

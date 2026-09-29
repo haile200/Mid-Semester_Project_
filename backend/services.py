@@ -629,12 +629,21 @@ def list_bot_activity(since):
     return rows
 
 
+def _bot_targets(query, params):
+    # The worker weighs targets by who wrote them; the database gives 0/1, the worker expects a boolean.
+    rows = _fetch_all(query, params)
+    for row in rows:
+        row['author_is_bot'] = bool(row['author_is_bot'])
+    return rows
+
+
 def list_like_targets(bot_id, limit):
-    """Recent posts by others that the bot has not liked yet."""
-    return _fetch_all(
+    """Recent posts by others that the bot has not liked yet, newest first."""
+    return _bot_targets(
         """
-        SELECT posts.id, posts.title
+        SELECT posts.id, posts.title, users.is_bot AS author_is_bot
         FROM posts
+        JOIN users ON users.id = posts.author_id
         WHERE posts.author_id <> %s
           AND NOT EXISTS (SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s)
         ORDER BY posts.id DESC
@@ -645,11 +654,12 @@ def list_like_targets(bot_id, limit):
 
 
 def list_comment_targets(bot_id, limit):
-    """Recent posts by others that the bot has not commented on yet."""
-    return _fetch_all(
+    """Recent posts by others that the bot has not commented on yet, newest first."""
+    return _bot_targets(
         """
-        SELECT posts.id, posts.title, posts.body
+        SELECT posts.id, posts.title, posts.body, users.is_bot AS author_is_bot
         FROM posts
+        JOIN users ON users.id = posts.author_id
         WHERE posts.author_id <> %s
           AND NOT EXISTS (
               SELECT 1 FROM comments
@@ -663,11 +673,12 @@ def list_comment_targets(bot_id, limit):
 
 
 def list_reply_targets(bot_id, limit):
-    """Recent comments by others that the bot has not replied to yet."""
-    return _fetch_all(
+    """Recent comments by others that the bot has not replied to yet, newest first."""
+    return _bot_targets(
         """
-        SELECT comments.id, comments.post_id, comments.body
+        SELECT comments.id, comments.post_id, comments.body, users.is_bot AS author_is_bot
         FROM comments
+        JOIN users ON users.id = comments.author_id
         WHERE comments.author_id <> %s
           AND NOT EXISTS (
               SELECT 1 FROM comments AS replies

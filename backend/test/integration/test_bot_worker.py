@@ -1,6 +1,9 @@
 """Integration tests for the bot worker: run_tick and its queries against the SQLite database from conftest.py."""
 import random
 
+import pytest
+
+import bots.worker
 import services
 from bots.profiles import BOTS
 from bots.seed import seed_bots
@@ -52,6 +55,46 @@ def test_comment_depth_counts_levels_from_the_top(db):
 
     # Assert
     assert depths == [0, 1, 2]
+
+
+def test_targets_say_whether_a_person_or_a_bot_wrote_them(db):
+    # Arrange: one post and one comment by a person, one of each by another bot.
+    seed_bots(BOTS[:2])
+    acting, other_bot = bot_id(db, 0), bot_id(db, 1)
+    human = add_human(db)
+    human_post = services.create_post(human, 'By a person', '<p>Body</p>')
+    bot_post = services.create_post(other_bot, 'By a bot', '<p>Body</p>')
+    human_comment = services.create_comment(bot_post, human, 'person comment')
+    bot_comment = services.create_comment(human_post, other_bot, 'bot comment')
+
+    # Act
+    comment_targets = {t['id']: t['author_is_bot'] for t in services.list_comment_targets(acting, 10)}
+    like_targets = {t['id']: t['author_is_bot'] for t in services.list_like_targets(acting, 10)}
+    reply_targets = {t['id']: t['author_is_bot'] for t in services.list_reply_targets(acting, 10)}
+
+    # Assert: real booleans, not the database's 0 and 1.
+    assert comment_targets == {human_post: False, bot_post: True}
+    assert like_targets == {human_post: False, bot_post: True}
+    assert reply_targets == {human_comment['id']: False, bot_comment['id']: True}
+
+
+@pytest.mark.parametrize('action', ['comment', 'like', 'reply'])
+def test_every_action_picks_its_target_through_order_targets(db, monkeypatch, action):
+    # Arrange: a stand-in ordering that always puts the oldest target first. With 20 targets, a plain
+    # random pick would land on the oldest only 1 time in 20.
+    seed_bots([BOTS[0]])
+    human = add_human(db)
+    posts = [services.create_post(human, f'Post {n}', '<p>Body</p>') for n in range(20)]
+    comments = [services.create_comment(post, human, f'comment {n}')['id'] for n, post in enumerate(posts)]
+    monkeypatch.setattr(bots.worker, 'order_targets', lambda targets, rng: list(reversed(targets)))
+
+    # Act
+    outcome, logs = tick(Pacing(weights={action: 1}))
+
+    # Assert
+    oldest = f'comment={comments[0]} ' if action == 'reply' else f'post={posts[0]} '
+    assert outcome == action
+    assert oldest in logs[0]
 
 
 def test_bot_activity_reports_last_action_and_recent_count(db):

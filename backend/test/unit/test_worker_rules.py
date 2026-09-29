@@ -4,11 +4,13 @@ from datetime import datetime, timedelta
 
 import pytest
 
+from bots.profiles import BOTS
 from bots.worker import (
     BotState,
     Pacing,
     choose_action,
     choose_bot,
+    order_targets,
     parse_args,
     reply_allowed,
     skip_reason,
@@ -132,6 +134,110 @@ def test_sleep_seconds_stays_within_the_configured_range():
     # Assert: inside the range, and actually random rather than fixed.
     assert all(5 <= pause <= 15 for pause in pauses)
     assert len({round(pause, 3) for pause in pauses}) > 100
+
+
+def test_default_pacing_spreads_the_daily_allowance_over_the_whole_day():
+    # Arrange: every bot may act daily_cap times a day; one action happens per tick.
+    pacing = Pacing()
+    daily_actions = len(BOTS) * pacing.daily_cap
+
+    # Act
+    average_pause = (pacing.min_sleep + pacing.max_sleep) / 2
+    hours_to_use_the_allowance = daily_actions * average_pause / 3600
+
+    # Assert: the bots stay active around the clock instead of using everything in a few hours.
+    assert 20 <= hours_to_use_the_allowance <= 28
+
+
+def test_default_pacing_leaves_most_of_the_gemini_quota_for_people():
+    # Arrange: posts, comments and replies cost two model calls (write + toxicity check); likes cost none.
+    pacing = Pacing()
+    total = sum(pacing.weights.values())
+    calls_per_action = sum(weight * (0 if action == 'like' else 2) for action, weight in pacing.weights.items()) / total
+
+    # Act
+    daily_calls = len(BOTS) * pacing.daily_cap * calls_per_action
+
+    # Assert: the free tier allows 500 requests a day for the whole project.
+    assert daily_calls <= 250
+
+
+# ---- order_targets ----
+
+def target(target_id, is_bot=True):
+    return {'id': target_id, 'author_is_bot': is_bot}
+
+
+def first_choice_counts(targets, trials=3000):
+    rng = random.Random(11)
+    return Counter(order_targets(targets, rng)[0]['id'] for _ in range(trials))
+
+
+def test_order_targets_returns_every_target_once():
+    # Arrange
+    targets = [target(i) for i in range(20)]
+
+    # Act
+    ordered = order_targets(targets, random.Random(3))
+
+    # Assert
+    assert sorted(t['id'] for t in ordered) == list(range(20))
+
+
+def test_order_targets_puts_newer_targets_first_more_often():
+    # Arrange: targets arrive newest first, all written by bots.
+    targets = [target(i) for i in range(20)]
+
+    # Act
+    counts = first_choice_counts(targets)
+
+    # Assert
+    assert counts[0] > counts[1] > counts[5] > counts[19]
+    assert counts[19] > 0
+
+
+def test_order_targets_prefers_people_over_slightly_newer_bot_posts():
+    # Arrange: a bot posted just after a person.
+    targets = [target(1, is_bot=True), target(2, is_bot=False)]
+
+    # Act
+    counts = first_choice_counts(targets)
+
+    # Assert
+    assert counts[2] > 0.6 * sum(counts.values())
+
+
+def test_a_fresh_post_by_a_person_is_usually_chosen_among_many_bot_posts():
+    # Arrange
+    targets = [target(0, is_bot=False)] + [target(i) for i in range(1, 20)]
+
+    # Act
+    counts = first_choice_counts(targets)
+
+    # Assert
+    assert counts[0] > 0.5 * sum(counts.values())
+
+
+def test_order_targets_is_repeatable_with_the_same_seed():
+    # Arrange
+    targets = [target(i, is_bot=i % 3 == 0) for i in range(10)]
+
+    # Act
+    first = order_targets(targets, random.Random(5))
+    second = order_targets(targets, random.Random(5))
+
+    # Assert
+    assert first == second
+
+
+def test_order_targets_handles_an_empty_list():
+    # Arrange: nothing
+
+    # Act
+    ordered = order_targets([], random.Random(1))
+
+    # Assert
+    assert ordered == []
 
 
 # ---- to_post_html ----
