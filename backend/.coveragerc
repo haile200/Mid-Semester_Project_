@@ -1,21 +1,11 @@
-# Coverage is scoped to the AUTHENTICATION code under test:
-#   utils.py, services.py, routes/auth.py
-# Everything else (non-auth routes, app wiring, seeds, tests, venv) is omitted
-# so the percentage reflects auth coverage specifically.
+# Coverage counts all backend code. Only the virtual environment, the tests themselves and
+# mock_db.py (a test helper) are left out.
 [run]
 source = .
 omit =
     venv/*
     test/*
-    routes/feed.py
-    routes/posts.py
-    routes/users.py
-    routes/__init__.py
-    app.py
-    config.py
-    db.py
     mock_db.py
-    seed.py
 
 [report]
 fail_under = 85
