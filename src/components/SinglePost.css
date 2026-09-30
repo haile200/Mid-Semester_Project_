@@ -96,6 +96,7 @@
 .MuiTypography-root.post-title {
     font-size: 17px;
     margin-bottom: 0.35em;
+    overflow-wrap: anywhere;
 }
 
 .post-image-container {
@@ -112,10 +113,12 @@
     display: block;
 }
 
+/* anywhere: a very long word or link breaks instead of running past the card's edge. */
 .post-body {
     color: #444441;
     font-size: 14px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .post-body p {

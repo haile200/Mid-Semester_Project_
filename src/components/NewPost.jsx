@@ -13,7 +13,7 @@ import SpellcheckIcon from '@mui/icons-material/Spellcheck';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { createPost, suggestCorrection, suggestPost } from '../api';
 import ImageUpload from './ImageUpload';
-import { hasFormatting, htmlToParagraphs, paragraphsToHtml } from '../writingHelp';
+import { hasFormatting, htmlToParagraphs, paragraphsToHtml, withNormalSpaces } from '../writingHelp';
 import './NewPost.css';
 
 const CLIMB_STYLES = ['Bouldering', 'Lead', 'Top rope'];
@@ -114,7 +114,7 @@ export default function NewPost({ currentUser }) {
 
         setIsLoading(true);
         try {
-            await createPost(title, body, activeUser.id, imageUrl);
+            await createPost(title, withNormalSpaces(body), activeUser.id, imageUrl);
             navigate('/');
         } catch (error) {
             setMessage(error.message || 'Failed to create post.');

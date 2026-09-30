@@ -22,6 +22,13 @@ export function paragraphsToHtml(text) {
         .join('');
 }
 
+// The editor (Quill 2) saves every space as a non-breaking space, which turns a whole paragraph
+// into one unbreakable word that cannot wrap. Used before saving, and when showing posts that were
+// saved that way already.
+export function withNormalSpaces(html) {
+    return (html || '').replace(/&nbsp;|\u00A0/g, ' ');
+}
+
 export function hasFormatting(html) {
     return /<(strong|em|u|a)\b/i.test(html || '');
 }

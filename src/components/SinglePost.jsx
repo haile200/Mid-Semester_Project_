@@ -13,6 +13,7 @@ import ReportPost from './ReportPost';
 import LikeButton from './LikeButton';
 import { climbingBadges } from '../theme';
 import { getTimeAgo } from '../timeAgo';
+import { withNormalSpaces } from '../writingHelp';
 import './SinglePost.css';
 
 export default function SinglePost({
@@ -77,7 +78,7 @@ export default function SinglePost({
 
             <Box
                 className="post-body"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(body) }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(withNormalSpaces(body)) }}
             />
 
             <Box className="post-footer">
