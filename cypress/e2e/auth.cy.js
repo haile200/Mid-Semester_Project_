@@ -7,7 +7,6 @@ describe('Authentication end-to-end', () => {
     cy.intercept('POST', '**/api/signup').as('signup');
     cy.intercept('POST', '**/api/login').as('login');
     cy.intercept('POST', '**/api/logout').as('logout');
-    cy.intercept('GET', '**/api/auth/me').as('me');
 
     cy.visit('/signup');
 
@@ -29,20 +28,25 @@ describe('Authentication end-to-end', () => {
     cy.wait('@login', { timeout: 10000 }).then(({ response, request }) => {
       expect(response.statusCode).to.equal(200);
       expect(request.body).to.deep.equal({ email, password });
+      expect(response.body.user.email).to.equal(email);
     });
 
     // Verify successful login
     cy.location('pathname', { timeout: 15000 }).should('eq', '/');
-    cy.contains(email, { timeout: 15000 }).should('exist');
+    cy.get('[data-cy="profile-link"]', { timeout: 15000 }).should('be.visible').and('have.text', 'My Profile');
 
-    // View Profile process
-    cy.get('[data-cy="profile-link"]').click();
+    // View Profile process: My Profile opens the user's own full profile page
+    cy.get('@login').its('response.body.user.id').then((userId) => {
+      cy.intercept('GET', `**/api/users/${userId}`).as('profile');
+      cy.get('[data-cy="profile-link"]').click();
 
-    // Assert the UI correctly displays the profile page and user data
-    cy.location('pathname', { timeout: 10000 }).should('eq', '/profile');
-    cy.wait('@me', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
-    cy.get('[data-cy="profile-name"]').should('contain', name);
-    cy.get('[data-cy="profile-email"]').should('contain', email);
+      cy.location('pathname', { timeout: 10000 }).should('eq', `/user-posts/${userId}`);
+      cy.wait('@profile', { timeout: 10000 }).its('response.statusCode').should('eq', 200);
+      cy.get('[data-cy="profile-name"]').should('contain', name);
+      // Only shown on your own profile, so it proves the page belongs to the logged-in user.
+      cy.get('[data-cy="edit-profile-button"]').should('be.visible');
+      cy.contains('No posts available yet.').should('be.visible');
+    });
 
     // Logout process
     cy.get('[data-cy="logout-button"]').click();

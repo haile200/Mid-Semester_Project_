@@ -46,14 +46,16 @@ export default function TopBar({ currentUser, onLogout }) {
                     )}
 
                     {currentUser ? (
+                        // Two short labels side by side; a long email here used to overflow the bar on phones.
                         <Box className="topbar-account">
-                            <Typography
+                            {/* The full profile page: bio, stats, posts and Edit Profile. */}
+                            <Button
                                 data-cy="profile-link"
-                                onClick={() => navigate('/profile')}
-                                className="topbar-profile-link"
+                                onClick={() => navigate(`/user-posts/${currentUser.id}`)}
+                                className="topbar-nav-button topbar-profile-button"
                             >
-                                {currentUser.email}
-                            </Typography>
+                                My Profile
+                            </Button>
                             <Button
                                 color="inherit"
                                 data-cy="logout-button"

@@ -210,7 +210,7 @@ export default function Feed() {
                                 {userDetails.name ? userDetails.name[0].toUpperCase() : 'U'}
                             </MuiAvatar>
                             <Box className="feed-profile-info">
-                                <Typography variant="h5" className="feed-profile-name">
+                                <Typography variant="h5" className="feed-profile-name" data-cy="profile-name">
                                     {userDetails.name}
                                 </Typography>
                                 {userDetails.bio && (
@@ -248,6 +248,7 @@ export default function Feed() {
                                         size="small"
                                         onClick={handleOpenEditDialog}
                                         className="feed-edit-profile-button"
+                                        data-cy="edit-profile-button"
                                     >
                                         Edit Profile
                                     </Button>

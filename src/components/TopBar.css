@@ -79,6 +79,7 @@
    brand when there is room, and wraps below it when there is not (a long email plus Admin). */
 .topbar-nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     flex-basis: 100%;
     min-width: 0;
@@ -97,8 +98,10 @@
     text-transform: none;
     color: #F1EFE8;
     min-width: auto;
-    padding-left: 8px;
-    padding-right: 8px;
+    /* Tight on phones so the links and the account pair share one row down to 360px screens. */
+    padding-left: 6px;
+    padding-right: 6px;
+    white-space: nowrap;
 }
 
 @media (min-width: 600px) {
@@ -127,40 +130,18 @@
     }
 }
 
-/* Logged-in account block, pushed to the end of its row. min-width: 0 lets it shrink, so a long
-   email is shortened with an ellipsis instead of pushing the row past the screen edge. */
+/* Logged-in account block: My Profile and Logout side by side, pushed to the end of the row.
+   Both labels are short and fixed, so the block keeps its natural size and never needs to shrink. */
 .topbar-account {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 0;
     margin-left: auto;
-    padding-left: 8px;
-    min-width: 0;
 }
 
-.MuiTypography-root.topbar-profile-link {
-    color: #F1EFE8;
-    font-size: 13px;
-    line-height: 1.2;
-    cursor: pointer;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-@media (min-width: 600px) {
-    .MuiTypography-root.topbar-profile-link {
-        max-width: 220px;
-    }
-}
-
-/* Short enough to fit, but never wider than the space the row leaves it. */
-.topbar-account {
-    max-width: 240px;
-}
-
-.MuiTypography-root.topbar-profile-link:hover {
+.MuiButton-root.topbar-profile-button:hover {
     color: #F0997B;
 }
 
@@ -168,7 +149,19 @@
     color: #F0997B;
     text-transform: none;
     font-weight: bold;
-    padding: 0;
     min-width: auto;
-    font-size: 13px;
+    padding-left: 6px;
+    padding-right: 6px;
+    white-space: nowrap;
+}
+
+@media (min-width: 600px) {
+    .MuiButton-root.topbar-logout-button {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+}
+
+.MuiButton-root.topbar-logout-button:hover {
+    background-color: #444441;
 }
