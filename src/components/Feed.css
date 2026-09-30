@@ -53,19 +53,27 @@
     color: #712B13;
 }
 
+/* flex-basis 240px, not 0: flex-wrap decides whether an item fits on the line from its basis.
+   With a basis of 0 the info always "fits", so it never wraps and gets squeezed to whatever width
+   the avatar and the buttons leave. With 240px it moves to its own full-width line when the card
+   is narrower, and still grows to fill the row on wide screens. */
 .feed-profile-info {
-    flex: 1;
+    flex: 1 1 240px;
+    min-width: 0;
 }
 
 .MuiTypography-root.feed-profile-name {
     font-weight: 600;
     margin-bottom: 4px;
+    overflow-wrap: anywhere;
 }
 
+/* anywhere: a very long word or link breaks instead of widening the card. */
 .MuiTypography-root.feed-profile-bio {
     color: #555;
     margin-bottom: 8px;
     font-style: italic;
+    overflow-wrap: anywhere;
 }
 
 .MuiTypography-root.feed-profile-stats {

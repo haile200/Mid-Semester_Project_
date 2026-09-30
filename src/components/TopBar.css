@@ -8,11 +8,14 @@
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25);
 }
 
+/* Wraps instead of overflowing: flex items never shrink below their content, so a single row that
+   is too long pushes past the screen edge and makes the whole page wider than the viewport. */
 .MuiToolbar-root.topbar-toolbar {
-    gap: 8px;
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 4px;
     min-height: 56px;
-    padding-left: 12px;
-    padding-right: 12px;
+    padding: 8px 12px;
 }
 
 @media (min-width: 600px) {
@@ -22,10 +25,11 @@
     }
 }
 
-/* Brand */
+/* Brand: keeps its natural size; the navigation is what moves to a second row. */
 .topbar-brand {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
     gap: 6px;
     cursor: pointer;
     margin-right: 4px;
@@ -46,6 +50,7 @@
     font-weight: bold;
     font-size: 18px;
     letter-spacing: -0.02em;
+    white-space: nowrap;
 }
 
 /* New post call to action */
@@ -59,6 +64,7 @@
     padding-right: 16px;
     font-size: 13px;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .MuiButton-root.topbar-new-post-button:hover {
@@ -69,15 +75,20 @@
     flex-grow: 1;
 }
 
-/* Navigation links */
+/* Navigation links: a full-width second row on phones. On wider screens the row sits next to the
+   brand when there is room, and wraps below it when there is not (a long email plus Admin). */
 .topbar-nav {
     display: flex;
     align-items: center;
+    flex-basis: 100%;
+    min-width: 0;
     gap: 0;
 }
 
 @media (min-width: 600px) {
     .topbar-nav {
+        flex-basis: auto;
+        margin-left: auto;
         gap: 4px;
     }
 }
@@ -116,12 +127,15 @@
     }
 }
 
-/* Logged-in account block */
+/* Logged-in account block, pushed to the end of its row. min-width: 0 lets it shrink, so a long
+   email is shortened with an ellipsis instead of pushing the row past the screen edge. */
 .topbar-account {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-left: 8px;
+    margin-left: auto;
+    padding-left: 8px;
+    min-width: 0;
 }
 
 .MuiTypography-root.topbar-profile-link {
@@ -129,7 +143,7 @@
     font-size: 13px;
     line-height: 1.2;
     cursor: pointer;
-    max-width: 110px;
+    max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -139,6 +153,11 @@
     .MuiTypography-root.topbar-profile-link {
         max-width: 220px;
     }
+}
+
+/* Short enough to fit, but never wider than the space the row leaves it. */
+.topbar-account {
+    max-width: 240px;
 }
 
 .MuiTypography-root.topbar-profile-link:hover {
