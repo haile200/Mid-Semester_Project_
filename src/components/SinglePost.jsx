@@ -17,7 +17,8 @@ import { withNormalSpaces } from '../writingHelp';
 import './SinglePost.css';
 
 export default function SinglePost({
-    postId, authorId, currentUserId, title, author, body, imageUrl, createdAt, canComment, likeCount, likedByMe,
+    postId, authorId, currentUserId, title, author, authorProfilePicture, body, imageUrl, createdAt, canComment,
+    likeCount, likedByMe,
 }) {
     // "Beta" is climber-speak for route advice; the thread loads only when opened.
     const [isThreadOpen, setIsThreadOpen] = useState(false);
@@ -32,7 +33,7 @@ export default function SinglePost({
         // Chalk-white card with a soft stone shadow - modern and calm like a gym wall
         <Card className="post-card" data-cy="post-card">
             <Box className="post-header">
-                <Avatar name={author || 'User'} size={40} />
+                <Avatar name={author || 'User'} profileImage={authorProfilePicture || null} size={40} />
                 <Box className="post-header-text">
                     <Typography variant="subtitle1" className="post-author-name">
                         {author || 'Unknown Author'}
