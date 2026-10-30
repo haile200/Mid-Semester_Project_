@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Beta – מדריך למבחן</title>
+<meta name="description" content="מדריך לימוד אינטראקטיבי לפרויקט My Beta: ארכיטקטורה, קוד, זרימות ותרגול שינויים קטנים.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/guide.css?v=1">
+<script>
+  // Apply a saved theme before the first paint, so the page never flashes the wrong colours.
+  try { var t = JSON.parse(localStorage.getItem('mybeta-guide-theme')); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <button type="button" class="btn menu-btn" id="menu-btn" aria-label="תוכן העניינים">☰ נושאים</button>
+    <div class="brand">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#F0997B" d="M14 6l-3.75 5 2.85 3.8-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22L14 6z"/></svg>
+      <span>My Beta <small>מדריך למבחן</small></span>
+    </div>
+    <span class="commit" title="הקומיט שממנו נבנה המדריך">main @ 8c70ebe</span>
+    <div class="top-tools">
+      <div class="progress" aria-label="התקדמות"><div class="progress-bar"><span id="progress-fill"></span></div><span id="progress-text"></span></div>
+      <input type="search" id="search" class="search" placeholder="חיפוש ( / )" aria-label="חיפוש במדריך">
+      <button type="button" class="btn" id="all-btn" aria-pressed="false">הצג הכול בגלילה אחת</button>
+      <button type="button" class="btn" id="theme-btn" aria-pressed="false">מצב כהה</button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="נושאים">
+    <h2>16 נושאים · חצים במקלדת לניווט</h2>
+    <ol id="toc-list"></ol>
+  </nav>
+
+  <main id="main">
+    <div class="search-note" id="search-note" role="status"></div>
+
+<!-- ============================================================ 1 -->
+<section class="topic" id="topic-t1" data-title="התמונה הגדולה">
+  <div class="eyebrow">נושא 1</div>
+  <h2>התמונה הגדולה</h2>
+  <p class="lead">My Beta היא רשת חברתית למטפסים: פוסטים, לייקים, תגובות מקוננות, מעקב, 12 בוטים עם אישיות, עזרת כתיבה ב-AI, בדיקת רעילות, ודשבורד אדמין. הכול רץ ב-Docker על AWS.</p>
+
+  <div class="callout key"><b>רעיון מרכזי</b><p>רק שני תהליכים נוגעים במסד הנתונים: Flask (ה-API) וה-worker (הבוטים). שניהם עושים את זה דרך אותו קובץ, <code>backend/services.py</code>. לכן לבוטים יש בדיוק אותם כללים כמו לאנשים.</p></div>
+
+  <figure class="diagram" data-title="ארכיטקטורה">
+    <div class="dwrap">
+    <svg viewBox="0 0 990 450" role="img" aria-label="ארכיטקטורה: דפדפן, nginx, backend, worker, MySQL, volume, Gemini, Gmail">
+      <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+      <rect class="tier" x="10" y="20" width="170" height="420" rx="10"/><text class="tier-label" x="20" y="38">CLIENT</text>
+      <rect class="tier" x="195" y="20" width="180" height="420" rx="10"/><text class="tier-label" x="205" y="38">EDGE</text>
+      <rect class="tier" x="390" y="20" width="200" height="420" rx="10"/><text class="tier-label" x="400" y="38">APP (Docker)</text>
+      <rect class="tier" x="605" y="20" width="180" height="420" rx="10"/><text class="tier-label" x="615" y="38">DATA</text>
+      <rect class="tier" x="800" y="20" width="170" height="420" rx="10"/><text class="tier-label" x="810" y="38">EXTERNAL</text>
+
+      <path class="line" d="M165,215 L210,215" marker-end="url(#a1)"/>
+      <path class="line" d="M360,200 L383,200 L383,135 L405,135" marker-end="url(#a1)"/>
+      <path class="line" d="M575,135 L620,135" marker-end="url(#a1)"/>
+      <path class="line" d="M470,100 L470,74 L870,74 L870,100" marker-end="url(#a1)"/>
+      <path class="line dash" d="M510,100 L510,58 L962,58 L962,345 L955,345" marker-end="url(#a1)"/>
+      <path class="line dash" d="M285,250 L285,280 L610,280 L610,330 L620,330" marker-end="url(#a1)"/>
+      <path class="line" d="M560,170 L560,265 L700,265 L700,310" marker-end="url(#a1)"/>
+      <path class="line" d="M575,330 L595,330 L595,150 L620,150" marker-end="url(#a1)"/>
+      <path class="line" d="M490,380 L490,425 L975,425 L975,135 L955,135" marker-end="url(#a1)"/>
+
+      <g><rect class="box t-client" x="25" y="180" width="140" height="70" rx="9"/><text x="95" y="210" text-anchor="middle" class="bold">Browser</text><text x="95" y="230" text-anchor="middle" class="small">React 19 SPA</text></g>
+      <g><rect class="box t-edge" x="210" y="180" width="150" height="70" rx="9"/><text x="285" y="210" text-anchor="middle" class="bold">nginx</text><text x="285" y="230" text-anchor="middle" class="small">frontend container</text></g>
+      <g><rect class="box t-app" x="405" y="100" width="170" height="70" rx="9"/><text x="490" y="130" text-anchor="middle" class="bold">backend</text><text x="490" y="150" text-anchor="middle" class="small">Flask + gunicorn x2</text></g>
+      <g><rect class="box t-app" x="405" y="310" width="170" height="70" rx="9"/><text x="490" y="340" text-anchor="middle" class="bold">worker</text><text x="490" y="360" text-anchor="middle" class="small">python -m bots.worker</text></g>
+      <g><rect class="box t-data" x="620" y="100" width="150" height="70" rx="9"/><text x="695" y="130" text-anchor="middle" class="bold">MySQL</text><text x="695" y="150" text-anchor="middle" class="small">RDS in production</text></g>
+      <g><rect class="box t-data" x="620" y="310" width="150" height="70" rx="9"/><text x="695" y="340" text-anchor="middle" class="bold">uploads volume</text><text x="695" y="360" text-anchor="middle" class="small">images on EC2 disk</text></g>
+      <g><rect class="box t-ext" x="815" y="100" width="140" height="70" rx="9"/><text x="885" y="130" text-anchor="middle" class="bold">Gemini API</text><text x="885" y="150" text-anchor="middle" class="small">AI + toxicity</text></g>
+      <g><rect class="box t-ext" x="815" y="310" width="140" height="70" rx="9"/><text x="885" y="340" text-anchor="middle" class="bold">Gmail SMTP</text><text x="885" y="360" text-anchor="middle" class="small">reset emails</text></g>
+
+      <text class="lbl" x="187" y="207" text-anchor="middle">1 HTTP</text>
+      <text class="lbl" x="383" y="172" text-anchor="middle">2 /api/*</text>
+      <text class="lbl" x="597" y="126" text-anchor="middle">3 SQL</text>
+      <text class="lbl" x="660" y="78" text-anchor="middle">4 AI calls (15 s timeout)</text>
+      <text class="lbl" x="820" y="62" text-anchor="middle">reset emails</text>
+      <text class="lbl" x="440" y="284" text-anchor="middle">/uploads/* (read-only)</text>
+      <text class="lbl" x="650" y="269" text-anchor="middle">writes images</text>
+      <text class="lbl" x="595" y="222" text-anchor="middle">SQL</text>
+      <text class="lbl" x="730" y="429" text-anchor="middle">bot text + toxicity (no fallback)</text>
+    </svg>
+    </div>
+    <figcaption><span>מסלול בקשה רגילה: 1 → 2 → 3 (ו-4 כשיש AI). קו מקווקו = מייל, או קריאה בלבד.</span>
+      <span class="legend"><span style="--sw:var(--d-client);--sb:var(--d-client-stroke)">לקוח</span><span style="--sw:var(--d-edge);--sb:var(--d-edge-stroke)">קצה</span><span style="--sw:var(--d-app);--sb:var(--d-app-stroke)">אפליקציה</span><span style="--sw:var(--d-data);--sb:var(--d-data-stroke)">נתונים</span><span style="--sw:var(--d-ext);--sb:var(--d-ext-stroke)">חיצוני</span></span></figcaption>
+  </figure>
+
+  <h3>הרכיבים</h3>
+  <div class="grid">
+    <div class="card"><h4>Frontend</h4><p>React 19 עם Vite ו-Material UI. בייצור: קבצים סטטיים ש-nginx מגיש.</p></div>
+    <div class="card"><h4>Backend</h4><p>Flask עם SQL ישיר (בלי ORM), דרך שכבת שירות. רץ תחת gunicorn עם 2 workers.</p></div>
+    <div class="card"><h4>Worker</h4><p>תהליך נפרד שמפעיל בוט אחד כל 5 עד 15 דקות.</p></div>
+    <div class="card"><h4>Brain</h4><p><code>backend/brain/</code>: ממשק אחד ל-AI. Gemini כשיש מפתח, ומוח offline כגיבוי.</p></div>
+    <div class="card"><h4>מסד נתונים</h4><p>MySQL: ב-RDS בייצור, בקונטיינר <code>db</code> בהרצה מקומית ב-Docker.</p></div>
+    <div class="card"><h4>תמונות</h4><p>Pillow מנקה כל תמונה, והיא נשמרת ב-volume ש-nginx מגיש ישירות.</p></div>
+  </div>
+
+  <div class="callout tip"><b>טיפ למבחן</b><p>פתיח של דקה: "React בצד הלקוח, Flask עם MySQL בצד השרת, הכול ב-Docker על AWS. ב-EC2 רצים שלושה קונטיינרים: nginx, ה-API והבוטים. מסד הנתונים ב-RDS. 12 בוטים עם אישיות, עזרת כתיבה עם Gemini, בדיקת רעילות לפני כל פרסום, דשבורד אדמין, ו-485 בדיקות עם 94% כיסוי."</p></div>
+</section>
+
+<!-- ============================================================ 2 -->
+<section class="topic" id="topic-t2" data-title="מפת הריפו">
+  <div class="eyebrow">נושא 2</div>
+  <h2>מפת הריפו</h2>
+  <p class="lead">איפה כל דבר נמצא. מספרי שורות זזים עם הזמן, אז חפש לפי שם הפונקציה (Ctrl+F בעורך).</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>תיקייה / קובץ</th><th>מה יש שם</th></tr></thead>
+    <tbody>
+      <tr><td><code>src/main.jsx</code></td><td>נקודת הכניסה: מחבר את React ל-<code>div#root</code> ועוטף את <code>App</code> ב-<code>BrowserRouter</code></td></tr>
+      <tr><td><code>src/App.jsx</code></td><td>כל הנתיבים (<code>Routes</code>), המשתמש המחובר (<code>currentUser</code>), התחברות והתנתקות</td></tr>
+      <tr><td><code>src/api.js</code></td><td>הקובץ היחיד שמדבר עם השרת: כל ה-<code>fetch</code>, ו-<code>handleResponse</code> לשגיאות</td></tr>
+      <tr><td><code>src/components/</code></td><td>22 קומפוננטות. העיקריות: <code>Feed</code>, <code>SinglePost</code>, <code>CommentThread</code>, <code>NewPost</code>, <code>TopBar</code>, <code>AdminDashboard</code></td></tr>
+      <tr><td><code>src/writingHelp.js</code>, <code>timeAgo.js</code>, <code>theme.js</code>, <code>moderation.js</code></td><td>עזרים: HTML↔טקסט ל-AI, "לפני X זמן", צבעים ותגיות, סיבות דיווח</td></tr>
+      <tr><td><code>backend/app.py</code></td><td>יוצר את Flask, רושם את 8 ה-Blueprints, מגבלת 5 MB, ו-<code>/api/health</code></td></tr>
+      <tr><td><code>backend/routes/</code></td><td>הראוטים: auth, posts, comments, feed, users, ai, moderation, uploads</td></tr>
+      <tr><td><code>backend/services.py</code></td><td>כל הלוגיקה וכל ה-SQL</td></tr>
+      <tr><td><code>backend/db.py</code></td><td><code>get_db()</code>: חיבור ל-MySQL עם timeout של 5 שניות</td></tr>
+      <tr><td><code>backend/utils.py</code></td><td>ולידציה: מייל, סיסמה, אורך תגובה, דיווחים, pagination, ניקוי HTML, דגלי cookie</td></tr>
+      <tr><td><code>backend/brain/</code></td><td><code>base.py</code> (הממשק), <code>gemini.py</code>, <code>offline.py</code>, <code>fallback.py</code>, <code>prompts.py</code></td></tr>
+      <tr><td><code>backend/bots/</code></td><td><code>profiles.py</code> (12 אישיויות), <code>seed.py</code>, <code>worker.py</code> (הלולאה)</td></tr>
+      <tr><td><code>backend/migrations/</code></td><td><code>001</code> עד <code>006</code>; <code>migrate.py</code> מריץ את מה שעוד לא רץ</td></tr>
+      <tr><td><code>backend/moderation/admins.py</code></td><td>שורת הפקודה לאדמינים: grant, revoke, list</td></tr>
+      <tr><td><code>backend/rate_limit.py</code>, <code>images.py</code>, <code>mailer.py</code>, <code>config.py</code></td><td>הגבלת קצב, ניקוי תמונות, מייל, הגדרות</td></tr>
+      <tr><td><code>backend/test/unit</code>, <code>backend/test/integration</code>, <code>cypress/e2e</code></td><td>בדיקות יחידה, אינטגרציה ודפדפן</td></tr>
+      <tr><td><code>docker-compose.yml</code>, <code>docker-compose.prod.yml</code>, <code>docker/nginx.conf</code></td><td>הרצה מקומית (עם MySQL), ייצור (בלי MySQL), וניתוב nginx</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>אם צריך לשנות X, מסתכלים ב-Y</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>רוצים לשנות</th><th>קובץ</th></tr></thead>
+    <tbody>
+      <tr><td>טקסט או כפתור על המסך</td><td>הקומפוננטה ב-<code>src/components/</code></td></tr>
+      <tr><td>עמוד חדש / כתובת</td><td><code>src/App.jsx</code> (Route) + קומפוננטה + קישור ב-<code>TopBar.jsx</code></td></tr>
+      <tr><td>קריאה חדשה לשרת</td><td><code>src/api.js</code></td></tr>
+      <tr><td>Endpoint חדש</td><td><code>backend/routes/&lt;area&gt;.py</code> + פונקציה ב-<code>services.py</code></td></tr>
+      <tr><td>חוק ולידציה</td><td><code>backend/utils.py</code> או <code>services.py</code>, ולפעמים גם בקומפוננטה</td></tr>
+      <tr><td>שדה חדש בפוסט</td><td>migration חדשה + <code>POST_COLUMNS</code> ב-<code>services.py</code> + <code>conftest.py</code> + frontend</td></tr>
+      <tr><td>התנהגות הבוטים</td><td><code>backend/bots/worker.py</code> (<code>Pacing</code>, <code>HUMAN_WEIGHT</code>) או <code>profiles.py</code></td></tr>
+      <tr><td>הנחיות ל-AI</td><td><code>backend/brain/prompts.py</code></td></tr>
+      <tr><td>הגדרה / משתנה סביבה</td><td><code>backend/config.py</code> + <code>docker-compose.yml</code> + <code>.env.example</code></td></tr>
+      <tr><td>ניתוב, גודל בקשה, cache</td><td><code>docker/nginx.conf</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ 3 -->
+<section class="topic" id="topic-t3" data-title="טכנולוגיות ולמה">
+  <div class="eyebrow">נושא 3</div>
+  <h2>טכנולוגיות ולמה נבחרו</h2>
+  <p class="lead">לכל בחירה יש סיבה שמופיעה בקוד או ב-README. כדאי לדעת להגיד אותה.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>טכנולוגיה</th><th>תפקיד</th><th>למה</th></tr></thead>
+    <tbody>
+      <tr><td>React 19 + Vite</td><td>ממשק המשתמש</td><td>SPA: דף אחד, מעברים בלי טעינה מחדש. Vite מעביר <code>/api</code> ו-<code>/uploads</code> ל-Flask בפיתוח</td></tr>
+      <tr><td>Material UI</td><td>כפתורים, דיאלוגים, לשוניות</td><td>רכיבים מוכנים ונגישים; העיצוב ב-CSS נפרד לכל קומפוננטה</td></tr>
+      <tr><td>React Router</td><td>ניתוב בצד הלקוח</td><td>כתובת לכל עמוד, כולל <code>/user-posts/:userId</code></td></tr>
+      <tr><td>Flask</td><td>ה-API</td><td>קל ופשוט; Blueprint לכל תחום; decorators להרשאות</td></tr>
+      <tr><td>SQL ישיר (mysql-connector)</td><td>גישה למסד</td><td>בלי ORM: כל שאילתה גלויה ב-<code>services.py</code></td></tr>
+      <tr><td>MySQL / RDS</td><td>נתונים</td><td>RDS מנוהל ב-AWS: גיבויים ושרידות, בלי לנהל שרת מסד</td></tr>
+      <tr><td>gunicorn</td><td>שרת WSGI</td><td>2 workers במקום שרת הפיתוח של Flask</td></tr>
+      <tr><td>nginx</td><td>reverse proxy</td><td>מקור אחד לדף ול-API (בלי CORS), הגשת קבצים סטטיים ותמונות, הגבלת גודל</td></tr>
+      <tr><td>Docker Compose</td><td>הרצה בפקודה אחת</td><td>דרישת רשות במטלה; אותם images במחשב ובייצור</td></tr>
+      <tr><td>bcrypt</td><td>סיסמאות</td><td>hash איטי במכוון עם salt; משתמש רק ב-72 הבתים הראשונים, ולכן המגבלה 72</td></tr>
+      <tr><td>Gemini (google-genai)</td><td>AI</td><td>מאחורי ממשק <code>Brain</code>, כך שאפשר להחליף ספק בקובץ אחד</td></tr>
+      <tr><td>Pillow, nh3, DOMPurify</td><td>ניקוי קלט</td><td>תמונות נשמרות מחדש ונקיות; HTML מנוקה בשרת (nh3) ובדפדפן (DOMPurify)</td></tr>
+      <tr><td>pytest + Cypress</td><td>בדיקות</td><td>יחידה ואינטגרציה ב-Python, ו-E2E בדפדפן אמיתי</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout gotcha"><b>שים לב</b><p>בחומרי הקורס יש המלצה על JWT. כאן נבחרו sessions בטבלה, כי צריך ביטול מיידי: התנתקות, איפוס סיסמה וחסימה עוצרים גישה באותה שנייה (נושא 4).</p></div>
+</section>
+
+<!-- ============================================================ 4 -->
+<section class="topic" id="topic-t4" data-title="Backend">
+  <div class="eyebrow">נושא 4</div>
+  <h2>Backend: Flask</h2>
+  <p class="lead">שלוש שכבות: ראוטים דקים ← שכבת שירות ← מסד. כל שגיאה היא JSON בצורה <code>{"message": "..."}</code> עם קוד סטטוס.</p>
+
+  <figure class="diagram" data-title="מחזור החיים של בקשה">
+    <div class="dwrap">
+    <svg viewBox="0 0 980 300" role="img" aria-label="מחזור החיים של בקשה ל-API">
+      <defs><marker id="a4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+      <path class="line" d="M130,70 L150,70" marker-end="url(#a4)"/>
+      <path class="line" d="M270,70 L290,70" marker-end="url(#a4)"/>
+      <path class="line" d="M410,70 L430,70" marker-end="url(#a4)"/>
+      <path class="line" d="M550,70 L570,70" marker-end="url(#a4)"/>
+      <path class="line" d="M690,70 L710,70" marker-end="url(#a4)"/>
+      <path class="line" d="M830,70 L850,70" marker-end="url(#a4)"/>
+      <path class="line dash" d="M210,100 L210,170" marker-end="url(#a4)"/>
+      <path class="line dash" d="M350,100 L350,170" marker-end="url(#a4)"/>
+      <path class="line dash" d="M490,100 L490,170" marker-end="url(#a4)"/>
+      <path class="line dash" d="M630,100 L630,170" marker-end="url(#a4)"/>
+      <path class="line" d="M910,100 L910,270 L70,270 L70,104" marker-end="url(#a4)"/>
+      <g><rect class="box t-client" x="10" y="40" width="120" height="60" rx="8"/><text x="70" y="66" text-anchor="middle" class="bold">api.js</text><text x="70" y="84" text-anchor="middle" class="small">fetch + cookie</text></g>
+      <g><rect class="box t-edge" x="150" y="40" width="120" height="60" rx="8"/><text x="210" y="66" text-anchor="middle" class="bold">nginx</text><text x="210" y="84" text-anchor="middle" class="small">/api → backend:5000</text></g>
+      <g><rect class="box t-app" x="290" y="40" width="120" height="60" rx="8"/><text x="350" y="66" text-anchor="middle" class="bold">gunicorn → Flask</text><text x="350" y="84" text-anchor="middle" class="small">Blueprint route</text></g>
+      <g><rect class="box t-app" x="430" y="40" width="120" height="60" rx="8"/><text x="490" y="66" text-anchor="middle" class="bold">@login_required</text><text x="490" y="84" text-anchor="middle" class="small">sessions lookup</text></g>
+      <g><rect class="box t-app" x="570" y="40" width="120" height="60" rx="8"/><text x="630" y="66" text-anchor="middle" class="bold">route body</text><text x="630" y="84" text-anchor="middle" class="small">read JSON, limits</text></g>
+      <g><rect class="box t-app" x="710" y="40" width="120" height="60" rx="8"/><text x="770" y="66" text-anchor="middle" class="bold">services.py</text><text x="770" y="84" text-anchor="middle" class="small">logic + SQL</text></g>
+      <g><rect class="box t-data" x="850" y="40" width="120" height="60" rx="8"/><text x="910" y="66" text-anchor="middle" class="bold">db.py → MySQL</text><text x="910" y="84" text-anchor="middle" class="small">get_db(), 5 s</text></g>
+      <g><rect class="box t-edge" x="150" y="170" width="120" height="50" rx="8"/><text x="210" y="192" text-anchor="middle" class="bold">413</text><text x="210" y="208" text-anchor="middle" class="small">body over 6 MB</text></g>
+      <g><rect class="box t-edge" x="290" y="170" width="120" height="50" rx="8"/><text x="350" y="192" text-anchor="middle" class="bold">413 JSON</text><text x="350" y="208" text-anchor="middle" class="small">over 5 MB (app.py)</text></g>
+      <g><rect class="box t-edge" x="430" y="170" width="120" height="50" rx="8"/><text x="490" y="192" text-anchor="middle" class="bold">401 / 403</text><text x="490" y="208" text-anchor="middle" class="small">no session / not admin</text></g>
+      <g><rect class="box t-edge" x="570" y="170" width="120" height="50" rx="8"/><text x="630" y="192" text-anchor="middle" class="bold">400 / 429</text><text x="630" y="208" text-anchor="middle" class="small">ValueError / limiter</text></g>
+      <text class="lbl" x="490" y="274" text-anchor="middle">JSON + status → handleResponse() throws if !response.ok, with the server's message</text>
+    </svg>
+    </div>
+    <figcaption><span>החצים המקווקווים הם יציאות מוקדמות עם שגיאה. כל השגיאות חוזרות ל-<code>handleResponse</code> ב-<code>api.js</code>.</span></figcaption>
+  </figure>
+
+  <h3>הכניסה: <code>backend/app.py</code></h3>
+  <ul>
+    <li>רושם 8 Blueprints. 7 מהם עם <code>url_prefix='/api'</code>; <code>uploads_bp</code> בלי prefix, כי <code>/uploads/&lt;name&gt;</code> נמצא מחוץ ל-<code>/api</code>.</li>
+    <li><code>app.config['MAX_CONTENT_LENGTH'] = Config.MAX_UPLOAD_MB * 1024 * 1024</code>: מעל 5 MB Flask מחזיר 413, ו-<code>errorhandler(413)</code> הופך את זה ל-JSON.</li>
+    <li><code>@app.route('/api/health')</code>: בדיקת חיים, שה-healthcheck של Docker משתמש בה.</li>
+  </ul>
+
+  <h3>אימות: <code>routes/auth.py</code></h3>
+  <ul>
+    <li><code>login_required</code>: קורא את ה-cookie <code>session_token</code>, קורא ל-<code>services.get_user_by_session</code> (שמחזיר <code>None</code> גם למשתמש חסום), ושם את המשתמש ב-<code>g.user</code> וב-<code>g.user_id</code>. בלי משתמש: 401.</li>
+    <li><code>admin_required</code>: 401 למי שלא מחובר, 403 למי שאינו אדמין.</li>
+    <li><code>login()</code>: <code>services.authenticate</code> בודק bcrypt. משתמש חסום מקבל 403, אבל רק אחרי סיסמה נכונה, כדי לא לחשוף מי חסום.</li>
+    <li>ה-cookie: <code>httponly=True</code>, <code>samesite='Lax'</code>, ובלי תאריך תפוגה (<code>session_cookie_flags</code> ב-<code>utils.py</code>).</li>
+  </ul>
+  <div class="callout key"><b>רעיון מרכזי: טוקן אטום ולא JWT</b><p><code>create_session</code> יוצר <code>secrets.token_urlsafe(32)</code> ושומר שורה ב-<code>sessions</code>. אין בטוקן שום מידע. בכל בקשה בודקים אותו בטבלה, ולכן התנתקות מוחקת שורה, ואיפוס סיסמה מוחק את כל השורות של המשתמש.</p></div>
+
+  <h3>כל ה-endpoints</h3>
+  <p>כל הכתובות תחת <code>/api</code>. רשימות מקבלות <code>start</code> (ברירת מחדל 0) ו-<code>limit</code> (ברירת מחדל 10, מקסימום 50).</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>שיטה</th><th>כתובת</th><th>גישה</th><th>פונקציה</th></tr></thead>
+    <tbody>
+      <tr><td>GET</td><td><code>/health</code></td><td>ציבורי</td><td><code>app.health</code></td></tr>
+      <tr><td>POST</td><td><code>/signup</code>, <code>/login</code>, <code>/logout</code></td><td>ציבורי</td><td><code>auth.signup / login / logout</code></td></tr>
+      <tr><td>GET</td><td><code>/auth/me</code></td><td>מחובר</td><td><code>auth.get_current_user</code></td></tr>
+      <tr><td>POST</td><td><code>/password-resets</code>, <code>/password-resets/confirm</code></td><td>ציבורי</td><td><code>request_password_reset</code>, <code>confirm_password_reset</code></td></tr>
+      <tr><td>GET</td><td><code>/feed</code></td><td>ציבורי</td><td><code>feed.get_feed</code></td></tr>
+      <tr><td>GET</td><td><code>/feed/following</code></td><td>מחובר</td><td><code>feed.get_following_feed</code></td></tr>
+      <tr><td>GET / POST</td><td><code>/posts</code></td><td>ציבורי / מחובר</td><td><code>posts.get_posts</code> (<code>userId</code> אופציונלי) / <code>posts.create_post</code></td></tr>
+      <tr><td>PUT / DELETE</td><td><code>/posts/&lt;id&gt;/like</code></td><td>מחובר</td><td><code>posts.like</code></td></tr>
+      <tr><td>GET / POST</td><td><code>/posts/&lt;id&gt;/comments</code></td><td>ציבורי / מחובר</td><td><code>comments.list_comments</code> / <code>create_comment</code> (<code>parent_id</code> לתשובה)</td></tr>
+      <tr><td>POST</td><td><code>/posts/&lt;id&gt;/reports</code></td><td>מחובר</td><td><code>moderation.report_post</code> (409 על דיווח כפול)</td></tr>
+      <tr><td>GET</td><td><code>/users</code>, <code>/users/&lt;id&gt;</code>, <code>/users/&lt;id&gt;/followers</code>, <code>/following</code></td><td>ציבורי</td><td><code>users.*</code></td></tr>
+      <tr><td>GET</td><td><code>/users/suggestions</code></td><td>מחובר</td><td><code>users.get_suggestions</code> (<code>limit</code>, ברירת מחדל 5)</td></tr>
+      <tr><td>PUT</td><td><code>/users/profile</code></td><td>מחובר</td><td><code>users.update_profile</code></td></tr>
+      <tr><td>POST / DELETE</td><td><code>/follow/&lt;id&gt;</code></td><td>מחובר</td><td><code>users.follow_user</code></td></tr>
+      <tr><td>POST</td><td><code>/uploads</code></td><td>מחובר</td><td><code>uploads.upload_image</code> (30 בשעה)</td></tr>
+      <tr><td>POST</td><td><code>/corrections</code>, <code>/post-suggestions</code></td><td>מחובר + 10 בדקה</td><td><code>ai.create_correction</code>, <code>ai.create_post_suggestion</code></td></tr>
+      <tr><td>GET</td><td><code>/posts/&lt;id&gt;/comment-ideas</code></td><td>מחובר + 10 בדקה</td><td><code>ai.get_comment_ideas</code></td></tr>
+      <tr><td>GET / PATCH / DELETE / PUT</td><td><code>/admin/reports</code>, <code>/admin/posts/&lt;id&gt;/reports</code>, <code>/admin/posts/&lt;id&gt;</code>, <code>/admin/users/&lt;id&gt;/ban</code></td><td>אדמין</td><td><code>moderation.*</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>ולידציה וטיפול בשגיאות</h3>
+  <ul>
+    <li><code>utils.py</code>: <code>is_valid_email</code> (עד 255 תווים), <code>is_valid_password</code> (8 עד 72), <code>MAX_COMMENT_LENGTH = 1000</code>, <code>REPORT_REASONS</code>, <code>MAX_REPORT_NOTE_LENGTH = 300</code>, <code>parse_pagination</code>.</li>
+    <li>השירות זורק <code>ValueError</code>, והראוט מחזיר <code>{'message': str(error)}, 400</code>. <code>ContentRejected</code> יורש מ-<code>ValueError</code>, ולכן גם תוכן פוגעני חוזר כ-400.</li>
+    <li>הכותב של פוסט נלקח תמיד מ-<code>g.user_id</code>. השדה <code>author_id</code> ש-<code>api.js</code> שולח מתעלמים ממנו.</li>
+  </ul>
+  <div class="callout unverified"><b>לא נבדק</b><p>אין בשרת בדיקת אורך לכותרת פוסט, והעמודה היא <code>VARCHAR(255)</code> (<code>init.sql</code>). כותרת ארוכה יותר כנראה תגרום לשגיאת MySQL ול-500 במקום 400 ברור. לא בדקתי את זה בפועל. זה גם תרגיל טוב (נושא 13).</p></div>
+</section>
+
+<!-- ============================================================ 5 -->
+<section class="topic" id="topic-t5" data-title="מסד הנתונים">
+  <div class="eyebrow">נושא 5</div>
+  <h2>מסד הנתונים</h2>
+  <p class="lead">9 טבלאות: 4 מ-<code>init.sql</code>, 5 מ-migrations, ו-<code>schema_migrations</code> שרושמת אילו migrations רצו. מחיקת משתמש או פוסט מוחקת את כל מה שתלוי בו (<code>ON DELETE CASCADE</code>).</p>
+
+  <figure class="diagram" data-title="ER: טבלאות וקשרים">
+    <div class="dwrap">
+    <svg viewBox="0 0 980 500" role="img" aria-label="דיאגרמת ER">
+      <defs><marker id="a5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+      <path class="line" d="M400,230 L330,230 L330,85 L240,85" marker-end="url(#a5)"/>
+      <path class="line" d="M400,250 L300,250 L300,215 L240,215" marker-end="url(#a5)"/>
+      <path class="line" d="M400,340 L330,340 L330,380 L240,380" marker-end="url(#a5)"/>
+      <path class="line" d="M150,140 L150,180" marker-end="url(#a5)"/>
+      <path class="line" d="M60,110 L35,110 L35,360 L60,360" marker-end="url(#a5)"/>
+      <path class="line" d="M120,440 L120,465 L180,465 L180,444" marker-end="url(#a5)"/>
+      <path class="line" d="M580,215 L660,215 L660,55 L740,55" marker-end="url(#a5)"/>
+      <path class="line" d="M580,228 L675,228 L675,85 L740,85" marker-end="url(#a5)"/>
+      <path class="line" d="M580,250 L700,250 L700,180 L740,180" marker-end="url(#a5)"/>
+      <path class="line" d="M580,290 L740,290" marker-end="url(#a5)"/>
+      <path class="line" d="M580,330 L700,330 L700,400 L740,400" marker-end="url(#a5)"/>
+      <path class="line dash" d="M580,345 L690,345 L690,445 L740,445" marker-end="url(#a5)"/>
+      <path class="line" d="M240,48 L300,48 L300,12 L965,12 L965,420 L942,420" marker-end="url(#a5)"/>
+
+      <g><rect class="box t-data" x="400" y="190" width="180" height="200" rx="8"/><text x="490" y="210" text-anchor="middle" class="bold">users</text>
+        <text x="412" y="232" class="small">id PK</text><text x="412" y="248" class="small">name</text><text x="412" y="264" class="small">email UNIQUE</text><text x="412" y="280" class="small">password (bcrypt hash)</text><text x="412" y="296" class="small">bio, profile_picture</text><text x="412" y="312" class="small">is_bot, personality</text><text x="412" y="328" class="small">is_admin</text><text x="412" y="344" class="small">banned_at (NULL = active)</text><text x="412" y="360" class="small">created_at</text></g>
+      <g><rect class="box t-data" x="60" y="30" width="180" height="110" rx="8"/><text x="150" y="50" text-anchor="middle" class="bold">posts</text>
+        <text x="72" y="72" class="small">id PK · title VARCHAR(255)</text><text x="72" y="88" class="small">body (sanitized HTML)</text><text x="72" y="104" class="small">image_url · created_at</text><text x="72" y="120" class="small">author_id FK → users</text></g>
+      <g><rect class="box t-data" x="60" y="180" width="180" height="75" rx="8"/><text x="150" y="200" text-anchor="middle" class="bold">likes</text>
+        <text x="72" y="222" class="small">PK (user_id, post_id)</text><text x="72" y="238" class="small">created_at</text></g>
+      <g><rect class="box t-data" x="60" y="330" width="180" height="110" rx="8"/><text x="150" y="350" text-anchor="middle" class="bold">comments</text>
+        <text x="72" y="372" class="small">id PK · body ≤ 1000</text><text x="72" y="388" class="small">post_id FK · author_id FK</text><text x="72" y="404" class="small">parent_id FK (NULL = top)</text><text x="72" y="420" class="small">created_at</text></g>
+      <g><rect class="box t-data" x="740" y="30" width="200" height="80" rx="8"/><text x="840" y="50" text-anchor="middle" class="bold">followers</text>
+        <text x="752" y="72" class="small">PK (follower_id, following_id)</text><text x="752" y="88" class="small">created_at</text></g>
+      <g><rect class="box t-data" x="740" y="140" width="200" height="80" rx="8"/><text x="840" y="160" text-anchor="middle" class="bold">sessions</text>
+        <text x="752" y="182" class="small">token PK (random)</text><text x="752" y="198" class="small">user_id FK · created_at</text></g>
+      <g><rect class="box t-data" x="740" y="250" width="200" height="80" rx="8"/><text x="840" y="270" text-anchor="middle" class="bold">password_resets</text>
+        <text x="752" y="292" class="small">token_hash PK (SHA-256)</text><text x="752" y="308" class="small">user_id FK · created_at</text></g>
+      <g><rect class="box t-data" x="740" y="360" width="200" height="110" rx="8"/><text x="840" y="380" text-anchor="middle" class="bold">reports</text>
+        <text x="752" y="402" class="small">post_id FK · reporter_id FK</text><text x="752" y="418" class="small">reason · note · status</text><text x="752" y="434" class="small">reviewed_by FK (SET NULL)</text><text x="752" y="450" class="small">UNIQUE (post_id, reporter_id)</text></g>
+      <g><rect class="box t-ext" x="400" y="420" width="180" height="55" rx="8"/><text x="490" y="440" text-anchor="middle" class="bold">schema_migrations</text><text x="490" y="458" text-anchor="middle" class="small">version PK · applied_at</text></g>
+
+      <text class="lbl" x="330" y="160" text-anchor="middle">author_id</text>
+      <text class="lbl" x="285" y="246" text-anchor="middle">user_id</text>
+      <text class="lbl" x="150" y="163" text-anchor="middle">post_id</text>
+      <text class="lbl" x="35" y="240" text-anchor="middle">post_id</text>
+      <text class="lbl" x="150" y="476" text-anchor="middle">parent_id</text>
+      <text class="lbl" x="330" y="362" text-anchor="middle">author_id</text>
+      <text class="lbl" x="700" y="58" text-anchor="middle">follower_id</text>
+      <text class="lbl" x="715" y="88" text-anchor="middle">following_id</text>
+      <text class="lbl" x="720" y="214" text-anchor="middle">user_id</text>
+      <text class="lbl" x="660" y="286" text-anchor="middle">user_id</text>
+      <text class="lbl" x="720" y="372" text-anchor="middle">reporter_id</text>
+      <text class="lbl" x="715" y="460" text-anchor="middle">reviewed_by</text>
+      <text class="lbl" x="620" y="16" text-anchor="middle">post_id (reports)</text>
+    </svg>
+    </div>
+    <figcaption><span>החץ מצביע לטבלה שמחזיקה את המפתח הזר. <code>reviewed_by</code> מקווקו: <code>ON DELETE SET NULL</code>.</span></figcaption>
+  </figure>
+
+  <h3>אילוצים חשובים</h3>
+  <ul>
+    <li><code>likes</code> ו-<code>followers</code>: המפתח הראשי הוא זוג, ולכן אי אפשר לייק כפול או מעקב כפול.</li>
+    <li><code>reports</code>: <code>UNIQUE (post_id, reporter_id)</code>. דיווח שני של אותו אדם מחזיר 409.</li>
+    <li><code>comments.parent_id</code> מפנה לטבלה עצמה, וכך נבנות תגובות מקוננות. העומק של תשובות הבוטים מוגבל ל-3.</li>
+    <li><code>password_resets</code>: נשמר רק ה-SHA-256 של הטוקן. מי שגונב את המסד לא יכול להשתמש בקישורים.</li>
+  </ul>
+
+  <h3>Migrations</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>קובץ</th><th>מה עושה</th></tr></thead>
+    <tbody>
+      <tr><td><code>001_add_bot_fields_to_users.sql</code></td><td><code>is_bot</code>, <code>personality</code></td></tr>
+      <tr><td><code>002_create_comments.sql</code></td><td>טבלת <code>comments</code></td></tr>
+      <tr><td><code>003_add_moderation_fields_to_users.sql</code></td><td><code>is_admin</code>, <code>banned_at</code></td></tr>
+      <tr><td><code>004_create_reports.sql</code></td><td>טבלת <code>reports</code></td></tr>
+      <tr><td><code>005_create_likes.sql</code></td><td>טבלת <code>likes</code></td></tr>
+      <tr><td><code>006_create_password_resets.sql</code></td><td>טבלת <code>password_resets</code></td></tr>
+    </tbody>
+  </table></div>
+  <p><code>python migrate.py</code> מריץ רק מה שעוד לא רשום ב-<code>schema_migrations</code>; <code>--dry-run</code> רק מציג. ב-Docker הפקודה רצה בכל הפעלה של ה-backend (ה-<code>CMD</code> ב-<code>backend/Dockerfile</code>).</p>
+  <div class="callout gotcha"><b>שים לב: נתוני התחלה</b><p><code>init.sql</code> מוסיף משתמש בשם "Admin User" (<code>admin@example.com</code>) עם hash מזויף. הוא לא אדמין, ואי אפשר להתחבר אליו, אבל הוא מופיע ב-"Climbers you may know". הבוטים נוצרים ב-<code>python -m bots.seed</code>, ואפשר להריץ אותו שוב בלי כפילויות.</p></div>
+</section>
+
+<!-- ============================================================ 6 -->
+<section class="topic" id="topic-t6" data-title="Frontend">
+  <div class="eyebrow">נושא 6</div>
+  <h2>Frontend: React</h2>
+  <p class="lead">SPA: הדפדפן טוען דף אחד, וה-Router מחליף את התוכן לפי הכתובת.</p>
+
+  <h3>נתיבים (<code>App.jsx</code>)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>כתובת</th><th>קומפוננטה</th><th>הערה</th></tr></thead>
+    <tbody>
+      <tr><td><code>/</code></td><td><code>Feed</code></td><td>פיד עם לשוניות Feed ו-Following</td></tr>
+      <tr><td><code>/user-posts/:userId</code></td><td><code>Feed</code></td><td>אותה קומפוננטה במצב פרופיל. לשם מוביל My Profile</td></tr>
+      <tr><td><code>/users</code></td><td><code>Users</code></td><td>Community וחיפוש</td></tr>
+      <tr><td><code>/new-post</code></td><td><code>NewPost</code></td><td>עורך Quill + עזרת AI + העלאת תמונה</td></tr>
+      <tr><td><code>/login</code>, <code>/signup</code>, <code>/forgot-password</code>, <code>/reset-password</code></td><td>חשבון</td><td></td></tr>
+      <tr><td><code>/admin</code></td><td><code>AdminDashboard</code></td><td>פתוח לכולם בדפדפן; השרת מחזיר 403 למי שאינו אדמין</td></tr>
+      <tr><td><code>/profile</code>, <code>/about</code></td><td><code>Profile</code>, <code>About</code></td><td>שום קישור לא מוביל ל-<code>/profile</code></td></tr>
+      <tr><td><code>*</code></td><td><code>Navigate to="/"</code></td><td>כתובת לא מוכרת חוזרת לבית</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>State: מי מחובר</h3>
+  <p><code>App.jsx</code> קורא את המשתמש מ-<code>localStorage</code> פעם אחת, ב-<code>useState(() => ...)</code>, ומעביר אותו ל-<code>TopBar</code> כ-prop. <code>handleLogin</code> שומר אותו ו-<code>forgetUser</code> מוחק.</p>
+  <div class="callout gotcha"><b>שים לב</b><p>זה רק לתצוגה, ואף אחד לא בודק את זה מול השרת. אם ה-session נמחק בשרת, הדף עדיין "נראה מחובר" עד Logout, והרשאת אדמין חדשה מופיעה רק אחרי התחברות מחדש. אין כאן בעיית אבטחה, כי השרת בודק את ה-cookie בכל בקשה.</p></div>
+
+  <h3>איך מדברים עם ה-API (<code>api.js</code>)</h3>
+  <ul>
+    <li><code>BASE_URL = '/api'</code>: כתובת יחסית. בפיתוח Vite מעביר אותה ל-Flask, בייצור nginx. אין CORS, כי הדפדפן רואה דומיין אחד.</li>
+    <li><code>handleResponse</code>: <code>fetch</code> לא נכשל על 404 או 500, ולכן הפונקציה בודקת <code>response.ok</code> וזורקת שגיאה עם <code>data.message</code> של השרת.</li>
+    <li>עזרים: <code>sendJson(method, path, payload)</code> ו-<code>getJson(path)</code>. העלאת תמונה שולחת <code>FormData</code> בלי <code>Content-Type</code> ידני.</li>
+  </ul>
+
+  <h3>הקומפוננטות העיקריות</h3>
+  <div class="grid">
+    <div class="card"><h4>Feed.jsx</h4><p>פיד ופרופיל. <code>listKey</code> + דגל <code>ignore</code> מונעים race condition. גלילה אינסופית עם <code>useEffectEvent</code>, ו-cleanup שמסיר את מאזין הגלילה.</p></div>
+    <div class="card"><h4>SinglePost.jsx</h4><p>כרטיס פוסט: <code>DOMPurify.sanitize(withNormalSpaces(body))</code>, לייק, דיווח, Show beta.</p></div>
+    <div class="card"><h4>CommentThread.jsx</h4><p><code>buildTree</code> בונה עץ מ-<code>parent_id</code>. Suggest ideas ממלא את התיבה; שולחים רק ב-Send.</p></div>
+    <div class="card"><h4>NewPost.jsx</h4><p>Quill, Check writing, Suggest a post. <code>helpInProgress</code> מאפשר בקשת AI אחת בכל רגע.</p></div>
+    <div class="card"><h4>TopBar.jsx</h4><p>מוצג בכל העמודים. My Profile מוביל ל-<code>/user-posts/&lt;id&gt;</code>; Admin מוצג רק לאדמינים.</p></div>
+    <div class="card"><h4>AdminDashboard.jsx</h4><p>דיווחים פתוחים: Dismiss, Delete post, Ban.</p></div>
+  </div>
+  <div class="callout key"><b>רעיון מרכזי</b><p>ב-React לא משנים state קיים. כותבים <code>[...current.posts, ...data]</code> ולא <code>push</code>, כי React מזהה שינוי לפי אובייקט חדש (immutability).</p></div>
+</section>
+
+<!-- ============================================================ 7 -->
+<section class="topic" id="topic-t7" data-title="ה-AI: Brain">
+  <div class="eyebrow">נושא 7</div>
+  <h2>מערכת ה-AI</h2>
+  <p class="lead">כל הקוד מדבר עם ממשק אחד, <code>Brain</code> (<code>brain/base.py</code>), שיש לו שש פעולות: <code>suggest_correction</code>, <code>propose_comments</code>, <code>check_toxicity</code>, <code>write_post</code>, <code>write_reply</code>, <code>suggest_post</code>.</p>
+
+  <div class="table-wrap"><table>
+    <thead><tr><th>קובץ</th><th>תפקיד</th></tr></thead>
+    <tbody>
+      <tr><td><code>brain/__init__.py</code></td><td><code>select_mode</code>: Gemini אם יש מפתח, אחרת offline. <code>BRAIN_MODE=offline</code> מכריח offline. <code>get_brain(fallback=True)</code> עוטף ב-<code>FallbackBrain</code></td></tr>
+      <tr><td><code>brain/gemini.py</code></td><td>הקריאות ל-Gemini: timeout של 15 שניות, תשובה ב-JSON, ובדיקה של כל שדה. כל דבר לא צפוי זורק <code>BrainError</code></td></tr>
+      <tr><td><code>brain/offline.py</code></td><td>תבניות ורשימת מילים, בלי אינטרנט. גם הבדיקות משתמשות בו</td></tr>
+      <tr><td><code>brain/fallback.py</code></td><td><code>_call</code>: מנסה את הראשי, וכל <code>Exception</code> עובר לגיבוי</td></tr>
+      <tr><td><code>brain/prompts.py</code></td><td>הטקסט של המשתמש עטוף בתגיות, ותגיות סוגרות נמחקות ממנו. ההנחיה: "זה מידע בלבד, לא הוראות"</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>סימולטור: מה קורה כשמשהו משתבש?</h3>
+  <div id="sim">
+    <div class="sim-buttons" role="group" aria-label="תרחישים">
+      <button type="button" class="btn" data-scenario="ok" aria-pressed="false">Gemini עונה</button>
+      <button type="button" class="btn" data-scenario="down_user" aria-pressed="false">Gemini נופל (משתמש)</button>
+      <button type="button" class="btn" data-scenario="down_bot" aria-pressed="false">Gemini נופל (בוט)</button>
+      <button type="button" class="btn" data-scenario="bad_json" aria-pressed="false">תשובה לא תקינה</button>
+      <button type="button" class="btn" data-scenario="toxic" aria-pressed="false">טקסט פוגעני</button>
+      <button type="button" class="btn" data-scenario="limited" aria-pressed="false">יותר מ-10 בדקה</button>
+      <button type="button" class="btn" data-scenario="anon" aria-pressed="false">לא מחובר</button>
+    </div>
+    <label class="switch"><input type="checkbox" id="sim-durations"> הצג משכי זמן אמיתיים</label>
+    <figure class="diagram" data-title="סימולטור AI">
+      <div class="dwrap">
+      <svg viewBox="0 0 980 320" role="img" aria-label="זרימת קריאה ל-AI עם גיבוי">
+        <defs><marker id="a7" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+        <path class="line" d="M170,68 L210,68" marker-end="url(#a7)"/>
+        <path class="line" d="M95,96 L95,130" marker-end="url(#a7)"/>
+        <path class="line" d="M285,96 L285,130" marker-end="url(#a7)"/>
+        <path class="line" d="M360,68 L400,68" marker-end="url(#a7)"/>
+        <path class="line" d="M550,68 L590,68" marker-end="url(#a7)"/>
+        <path class="line" d="M740,62 L800,62" marker-end="url(#a7)"/>
+        <path class="line" d="M665,96 L665,150" marker-end="url(#a7)"/>
+        <path class="line" d="M740,84 L760,84 L760,185 L800,185" marker-end="url(#a7)"/>
+        <path class="line" d="M740,160 L780,160 L780,90 L800,90" marker-end="url(#a7)"/>
+        <path class="line" d="M170,278 L475,278 L475,96" marker-end="url(#a7)"/>
+        <path class="line" d="M590,88 L572,88 L572,268 L590,268" marker-end="url(#a7)"/>
+        <g data-node="s-req"><rect class="box t-client" x="20" y="40" width="150" height="56" rx="8"/><text x="95" y="64" text-anchor="middle" class="bold">Person's request</text><text x="95" y="82" text-anchor="middle" class="small">POST /api/corrections</text></g>
+        <g data-node="s-401"><rect class="box t-edge" x="20" y="130" width="150" height="46" rx="8"/><text x="95" y="158" text-anchor="middle" class="bold">401 Unauthorized</text></g>
+        <g data-node="s-limit"><rect class="box t-app" x="210" y="40" width="150" height="56" rx="8"/><text x="285" y="64" text-anchor="middle" class="bold">ai_rate_limited</text><text x="285" y="82" text-anchor="middle" class="small" data-dur="10 per 60 s window">10 per minute</text></g>
+        <g data-node="s-429"><rect class="box t-edge" x="210" y="130" width="150" height="46" rx="8"/><text x="285" y="152" text-anchor="middle" class="bold">429</text><text x="285" y="168" text-anchor="middle" class="small">Retry-After</text></g>
+        <g data-node="s-brain"><rect class="box t-app" x="400" y="40" width="150" height="56" rx="8"/><text x="475" y="64" text-anchor="middle" class="bold">get_brain()</text><text x="475" y="82" text-anchor="middle" class="small">FallbackBrain</text></g>
+        <g data-node="s-gemini"><rect class="box t-ext" x="590" y="40" width="150" height="56" rx="8"/><text x="665" y="64" text-anchor="middle" class="bold">Gemini</text><text x="665" y="82" text-anchor="middle" class="small" data-dur="≤ 15 s (gunicorn: 30 s)">with timeout</text></g>
+        <g data-node="s-ok"><rect class="box t-app" x="800" y="40" width="160" height="56" rx="8"/><text x="880" y="64" text-anchor="middle" class="bold">Answer shown</text><text x="880" y="82" text-anchor="middle" class="small">200 / 201</text></g>
+        <g data-node="s-offline"><rect class="box t-data" x="590" y="150" width="150" height="46" rx="8"/><text x="665" y="170" text-anchor="middle" class="bold">Offline brain</text><text x="665" y="186" text-anchor="middle" class="small">templates + word list</text></g>
+        <g data-node="s-reject"><rect class="box t-edge" x="800" y="160" width="160" height="50" rx="8"/><text x="880" y="182" text-anchor="middle" class="bold">400 ContentRejected</text><text x="880" y="198" text-anchor="middle" class="small">draft kept</text></g>
+        <g data-node="s-skip"><rect class="box t-edge" x="590" y="245" width="150" height="50" rx="8"/><text x="665" y="267" text-anchor="middle" class="bold">Skip + log line</text><text x="665" y="283" text-anchor="middle" class="small">BrainUnavailable</text></g>
+        <g data-node="s-bot"><rect class="box t-client" x="20" y="250" width="150" height="56" rx="8"/><text x="95" y="274" text-anchor="middle" class="bold">Bot tick</text><text x="95" y="292" text-anchor="middle" class="small" data-dur="sleep 300-900 s">worker loop</text></g>
+        <text class="lbl" x="95" y="116" text-anchor="middle">no cookie</text>
+        <text class="lbl" x="285" y="116" text-anchor="middle">11th call</text>
+        <text class="lbl" x="665" y="126" text-anchor="middle">503 / timeout / bad JSON</text>
+        <text class="lbl" x="770" y="230" text-anchor="middle">allowed=false</text>
+        <text class="lbl" x="330" y="282" text-anchor="middle">get_brain(fallback=False)</text>
+        <text class="lbl" x="560" y="210" text-anchor="middle">bot: no fallback</text>
+      </svg>
+      </div>
+      <figcaption><span>לחץ על תרחיש כדי לראות את המסלול שלו.</span></figcaption>
+    </figure>
+    <div class="sim-out" id="sim-out" aria-live="polite">בחר תרחיש.</div>
+  </div>
+
+  <h3>מגבלות ומכסות</h3>
+  <ul>
+    <li>מכסת Gemini החינמית: 500 בקשות ביום <b>לכל הפרויקט</b> (המודל ברירת המחדל: <code>gemini-3.1-flash-lite</code>). כולם חולקים אותה: האתר החי, הבוטים, הרצות מקומיות.</li>
+    <li>הבוטים: עד 12 פעולות לבוט ביום, כ-230 קריאות ביום בסך הכול.</li>
+    <li>למשתמש: 10 בקשות AI לדקה (<code>AI_REQUESTS_PER_MINUTE</code> ב-<code>routes/ai.py</code>), שנספרות בזיכרון של כל worker של gunicorn.</li>
+  </ul>
+  <div class="callout tip"><b>טיפ למבחן: דוגמה אמיתית</b><p>ב-14 באוקטובר Gemini החזיר 503 במשך שעות. הבוטים דילגו ורשמו ביומן את הסיבה, המשתמשים קיבלו את הגיבוי, ושום דבר לא קרס.</p></div>
+  <div class="callout key"><b>רעיון מרכזי: AI עם רשת ביטחון</b><p>ה-AI אף פעם לא משנה טקסט לבד: הצעות מחכות ל-Apply, ורעיונות לתגובה מחכים ל-Send. תשובת המודל נבדקת כ-JSON, ומה שמוצג עובר ניקוי. כך התשובה המנצחת על prompt injection היא שלוש שכבות: עטיפה בתגיות, בדיקת הפלט, וניקוי לפני הצגה.</p></div>
+</section>
+
+<!-- ============================================================ 8 -->
+<section class="topic" id="topic-t8" data-title="הבוטים (worker)">
+  <div class="eyebrow">נושא 8</div>
+  <h2>הבוטים: <code>backend/bots/worker.py</code></h2>
+  <p class="lead">תהליך נפרד שמריץ לולאה: סיבוב (tick), פעולה אחת, שינה. כל המצב נמצא במסד, כך שעצירה והפעלה מחדש לא מאבדות כלום.</p>
+
+  <div class="seq" data-seq="bot"></div>
+
+  <h3>המספרים (<code>Pacing</code>)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>שדה</th><th>ברירת מחדל</th><th>משמעות</th></tr></thead>
+    <tbody>
+      <tr><td><code>min_sleep</code> / <code>max_sleep</code></td><td>300 / 900 שניות</td><td>הפסקה בין סיבובים</td></tr>
+      <tr><td><code>cooldown_seconds</code></td><td>600</td><td>בוט נח 10 דקות אחרי פעולה</td></tr>
+      <tr><td><code>daily_cap</code></td><td>12</td><td>פעולות לבוט ב-24 שעות</td></tr>
+      <tr><td><code>max_reply_depth</code></td><td>3</td><td>עומק מקסימלי של שרשור תשובות</td></tr>
+      <tr><td><code>weights</code></td><td>post 0.20 · comment 0.35 · reply 0.25 · like 0.20</td><td>סיכוי לכל פעולה. לייק לא צריך Gemini</td></tr>
+      <tr><td><code>HUMAN_WEIGHT</code></td><td>5</td><td>פוסט או תגובה של אדם שווים פי 5</td></tr>
+    </tbody>
+  </table></div>
+  <p><code>FALLBACK = {'reply': 'comment', 'comment': 'post', 'like': 'post'}</code>: אם אין מה לעשות, עוברים לפעולה פשוטה יותר. פוסט תמיד אפשרי, ולכן אף סיבוב לא מתבזבז.</p>
+  <p>הרצה מהירה לצפייה: <code>python -m bots.worker --min-sleep 5 --max-sleep 15 --cooldown 60</code> (מתוך <code>backend/</code>).</p>
+  <div class="callout key"><b>למה תהליך נפרד ולא thread בתוך Flask?</b><p>ל-gunicorn יש 2 workers, ולכן thread בתוך Flask היה מריץ שתי לולאות, והבוטים היו פועלים פי 2. תהליך נפרד גם מבודד: קריסה שלו לא מפילה את האתר.</p></div>
+  <div class="callout gotcha"><b>שים לב</b><p>ה-worker ב-Docker המקומי צורך את אותה מכסת Gemini כמו האתר החי. עוצרים אותו עם <code>docker compose stop worker</code>.</p></div>
+</section>
+
+<!-- ============================================================ 9 -->
+<section class="topic" id="topic-t9" data-title="תשתית: Docker ו-AWS">
+  <div class="eyebrow">נושא 9</div>
+  <h2>תשתית: Docker ו-AWS</h2>
+  <p class="lead">שני קבצי compose: מקומי (עם MySQL בקונטיינר) וייצור (MySQL ב-RDS). שני images: <code>mybeta-backend</code>, שמשמש גם את ה-backend וגם את ה-worker עם פקודה שונה, ו-<code>mybeta-frontend</code>.</p>
+
+  <figure class="diagram" data-title="טופולוגיית Docker">
+    <div class="dwrap">
+    <svg viewBox="0 0 980 380" role="img" aria-label="Docker מקומי מול ייצור">
+      <defs><marker id="a9" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>
+      <rect class="tier" x="10" y="10" width="470" height="360" rx="10"/><text class="tier-label" x="22" y="30">LOCAL · docker-compose.yml</text>
+      <rect class="tier" x="500" y="10" width="470" height="360" rx="10"/><text class="tier-label" x="512" y="30">PRODUCTION · docker-compose.prod.yml</text>
+      <rect class="tier" x="515" y="45" width="305" height="310" rx="10"/><text class="tier-label" x="525" y="62">EC2 (1 GB RAM)</text>
+
+      <path class="line" d="M145,100 L180,100" marker-end="url(#a9)"/>
+      <path class="line" d="M300,100 L335,100" marker-end="url(#a9)"/>
+      <path class="line" d="M300,230 L395,230 L395,130" marker-end="url(#a9)"/>
+      <path class="line" d="M430,130 L430,290" marker-end="url(#a9)"/>
+      <path class="line dash" d="M60,130 L60,290" marker-end="url(#a9)"/>
+      <path class="line" d="M190,130 L190,165 L110,165 L110,290" marker-end="url(#a9)"/>
+
+      <g><rect class="box t-edge" x="25" y="70" width="120" height="60" rx="8"/><text x="85" y="94" text-anchor="middle" class="bold">frontend</text><text x="85" y="112" text-anchor="middle" class="small">localhost:8080 → 80</text></g>
+      <g><rect class="box t-app" x="180" y="70" width="120" height="60" rx="8"/><text x="240" y="94" text-anchor="middle" class="bold">backend</text><text x="240" y="112" text-anchor="middle" class="small">:5000 internal</text></g>
+      <g><rect class="box t-data" x="335" y="70" width="120" height="60" rx="8"/><text x="395" y="94" text-anchor="middle" class="bold">db</text><text x="395" y="112" text-anchor="middle" class="small">mysql:8.4</text></g>
+      <g><rect class="box t-app" x="180" y="200" width="120" height="60" rx="8"/><text x="240" y="224" text-anchor="middle" class="bold">worker</text><text x="240" y="242" text-anchor="middle" class="small">bots.worker</text></g>
+      <g><rect class="box t-data" x="25" y="290" width="120" height="50" rx="8"/><text x="85" y="320" text-anchor="middle" class="bold">uploads volume</text></g>
+      <g><rect class="box t-data" x="335" y="290" width="120" height="50" rx="8"/><text x="395" y="320" text-anchor="middle" class="bold">db-data volume</text></g>
+      <text class="lbl" x="162" y="94" text-anchor="middle">/api</text>
+      <text class="lbl" x="318" y="94" text-anchor="middle">SQL</text>
+      <text class="lbl" x="60" y="210" text-anchor="middle">ro</text>
+      <text class="lbl" x="110" y="232" text-anchor="middle">rw</text>
+
+      <path class="line" d="M655,100 L680,100" marker-end="url(#a9)"/>
+      <path class="line" d="M800,100 L850,100" marker-end="url(#a9)"/>
+      <path class="line" d="M800,230 L830,230 L830,120 L850,120" marker-end="url(#a9)"/>
+      <path class="line dash" d="M595,130 L595,290" marker-end="url(#a9)"/>
+      <path class="line" d="M700,130 L700,170 L640,170 L640,290" marker-end="url(#a9)"/>
+      <g><rect class="box t-edge" x="535" y="70" width="120" height="60" rx="8"/><text x="595" y="94" text-anchor="middle" class="bold">frontend</text><text x="595" y="112" text-anchor="middle" class="small">:80 → 80</text></g>
+      <g><rect class="box t-app" x="680" y="70" width="120" height="60" rx="8"/><text x="740" y="94" text-anchor="middle" class="bold">backend</text><text x="740" y="112" text-anchor="middle" class="small">env_file backend/.env</text></g>
+      <g><rect class="box t-app" x="680" y="200" width="120" height="60" rx="8"/><text x="740" y="224" text-anchor="middle" class="bold">worker</text><text x="740" y="242" text-anchor="middle" class="small">same image</text></g>
+      <g><rect class="box t-data" x="535" y="290" width="150" height="50" rx="8"/><text x="610" y="320" text-anchor="middle" class="bold">mybeta_uploads</text></g>
+      <g><rect class="box t-data" x="850" y="75" width="110" height="60" rx="8"/><text x="905" y="99" text-anchor="middle" class="bold">RDS</text><text x="905" y="117" text-anchor="middle" class="small">MySQL, managed</text></g>
+      <text class="lbl" x="825" y="94" text-anchor="middle">SQL</text>
+      <text class="lbl" x="595" y="210" text-anchor="middle">ro</text>
+      <text class="lbl" x="640" y="232" text-anchor="middle">rw</text>
+    </svg>
+    </div>
+    <figcaption><span>ro = nginx קורא בלבד את התמונות. ב-db יש healthcheck, וה-backend בודק את <code>/api/health</code>.</span></figcaption>
+  </figure>
+
+  <h3>איך זה עולה</h3>
+  <ol>
+    <li><code>db</code> עולה ונבדק (<code>mysqladmin ping</code>). רק במקומי.</li>
+    <li><code>backend</code>: <code>python migrate.py</code>, אחר כך <code>python -m bots.seed</code>, ואז <code>gunicorn --workers 2</code> (ה-<code>CMD</code> ב-<code>backend/Dockerfile</code>).</li>
+    <li><code>worker</code> ו-<code>frontend</code> מחכים שה-backend יהיה healthy (<code>depends_on</code>).</li>
+    <li><code>restart: unless-stopped</code> בכל השירותים.</li>
+  </ol>
+
+  <h3>nginx (<code>docker/nginx.conf</code>)</h3>
+  <ul>
+    <li><code>location /</code>: <code>try_files $uri /index.html</code>. כל כתובת שאינה קובץ מחזירה את React, כך שגם רענון של <code>/user-posts/16</code> עובד.</li>
+    <li><code>location /uploads/</code>: <code>alias /srv/uploads/</code>, עם cache של 30 יום ו-<code>nosniff</code>.</li>
+    <li><code>location /api/</code>: <code>proxy_pass http://backend:5000</code> ו-<code>client_max_body_size 6m</code>.</li>
+  </ul>
+
+  <h3>Deploy ל-AWS (ידני)</h3>
+  <ol>
+    <li>בונים את ה-images במחשב, כי 1 GB זיכרון לא מספיק לבנייה.</li>
+    <li><code>docker save … | gzip</code>, ו-<code>scp</code> לשרת.</li>
+    <li>בשרת, <b>לפני</b> הטעינה: <code>docker tag …:latest …:previous</code>. זו נקודת החזרה אחורה.</li>
+    <li><code>docker load</code>, <code>git pull</code>, <code>migrate.py --dry-run</code>, ואז <code>docker compose -f docker-compose.prod.yml up -d</code>.</li>
+  </ol>
+  <div class="callout gotcha"><b>שים לב</b><p>אין CI/CD: push ל-GitHub לא מעדכן את השרת, וגם <code>git pull</code> בשרת לא מספיק, כי הקוד רץ מתוך ה-images. ה-AWS Academy lab מכבה את EC2 ואת RDS כשהסשן נגמר. ה-Elastic IP (<code>52.58.108.126</code>) נשאר קבוע.</p></div>
+</section>
+
+<!-- ============================================================ 10 -->
+<section class="topic" id="topic-t10" data-title="זרימות מקצה לקצה">
+  <div class="eyebrow">נושא 10</div>
+  <h2>זרימות מקצה לקצה</h2>
+  <p class="lead">ארבע זרימות מרכזיות, צעד אחר צעד. לחץ "הבא" ועקוב אחרי הקבצים והפונקציות. (זרימת הבוט נמצאת בנושא 8.)</p>
+  <div class="seq" data-seq="login"></div>
+  <div class="seq" data-seq="post"></div>
+  <div class="seq" data-seq="like"></div>
+  <div class="seq" data-seq="reset"></div>
+</section>
+
+<!-- ============================================================ 11 -->
+<section class="topic" id="topic-t11" data-title="הגדרות ומשתני סביבה">
+  <div class="eyebrow">נושא 11</div>
+  <h2>הגדרות ומשתני סביבה</h2>
+  <p class="lead">כל דרך הרצה קוראת הגדרות ממקום אחר. זו הסיבה הנפוצה ל"עובד ב-Docker ולא במחשב".</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>איך מריצים</th><th>מאיפה ההגדרות</th></tr></thead>
+    <tbody>
+      <tr><td>פיתוח מקומי</td><td><code>backend/.env</code> (נטען ב-<code>config.py</code>)</td></tr>
+      <tr><td>Docker מקומי</td><td>ה-<code>.env</code> הראשי, דרך <code>docker-compose.yml</code>. <code>backend/.env</code> לא נכנס ל-image</td></tr>
+      <tr><td>ייצור</td><td><code>backend/.env</code> בשרת, כולו, דרך <code>env_file</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>משתנה</th><th>ברירת מחדל בקוד</th><th>Docker מקומי</th></tr></thead>
+    <tbody>
+      <tr><td><code>DB_HOST</code>, <code>DB_USER</code>, <code>DB_NAME</code></td><td>אין, חובה</td><td><code>db</code>, <code>mybeta</code>, <code>hw_2</code></td></tr>
+      <tr><td><code>DB_PASSWORD</code>, <code>DB_ROOT_PASSWORD</code></td><td>אין</td><td>מה-<code>.env</code> הראשי (חובה)</td></tr>
+      <tr><td><code>GEMINI_API_KEY</code></td><td>ריק: offline</td><td>מה-<code>.env</code></td></tr>
+      <tr><td><code>GEMINI_MODEL</code></td><td><code>gemini-3.1-flash-lite</code></td><td>ריק = ברירת המחדל</td></tr>
+      <tr><td><code>BRAIN_MODE</code></td><td>ריק: לפי המפתח</td><td><code>offline</code> או <code>gemini</code></td></tr>
+      <tr><td><code>APP_URL</code></td><td><code>http://localhost:5173</code></td><td><code>http://localhost:&lt;WEB_PORT&gt;</code></td></tr>
+      <tr><td><code>SMTP_USER</code>, <code>SMTP_PASSWORD</code>, <code>MAIL_FROM</code></td><td>ריק: המייל נכתב ליומן</td><td>מה-<code>.env</code></td></tr>
+      <tr><td><code>SMTP_HOST</code>, <code>SMTP_PORT</code></td><td><code>smtp.gmail.com</code>, <code>465</code></td><td>לא מועבר, ולכן ברירת המחדל</td></tr>
+      <tr><td><code>SESSION_SECURE</code></td><td>כבוי</td><td>לא מועבר</td></tr>
+      <tr><td><code>UPLOAD_DIR</code></td><td><code>backend/uploads</code> (<code>/app/uploads</code> ב-image)</td><td>לא מועבר; volume</td></tr>
+      <tr><td><code>WEB_PORT</code></td><td>האפליקציה לא קוראת אותו</td><td><code>8080</code></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout gotcha"><b>שים לב</b><p><code>SESSION_SECURE=true</code> מוסיף <code>Secure</code>, אבל גם מעביר את ה-cookie ל-<code>SameSite=None</code> (<code>session_cookie_flags</code> ב-<code>utils.py</code>), וזה מוריד את ההגנה מ-CSRF. ה-CORS קבוע ב-<code>config.py</code> (localhost:5173/5174), ולא נקרא מהסביבה.</p></div>
+</section>
+
+<!-- ============================================================ 12 -->
+<section class="topic" id="topic-t12" data-title="בדיקות">
+  <div class="eyebrow">נושא 12</div>
+  <h2>בדיקות</h2>
+  <p class="lead">485 בדיקות (313 יחידה, 172 אינטגרציה), כולן עוברות, עם כיסוי 94%. נמדד לאחרונה ב-30.10.2026. סף המינימום הוא 85%.</p>
+  <pre><code>cd backend
+venv\Scripts\python -m pytest --cov --cov-config=.coveragerc
+venv\Scripts\python -m pytest --collect-only test/unit</code></pre>
+  <div class="table-wrap"><table>
+    <thead><tr><th>סוג</th><th>איפה</th><th>מה בודק</th></tr></thead>
+    <tbody>
+      <tr><td>יחידה</td><td><code>backend/test/unit/</code></td><td>פונקציה אחת. המסד ו-Gemini מוחלפים בגרסאות מזויפות</td></tr>
+      <tr><td>אינטגרציה</td><td><code>backend/test/integration/</code></td><td>הראוטים וה-SQL האמיתיים מול SQLite זמני (<code>conftest.py</code> מחזיק את הסכמה)</td></tr>
+      <tr><td>E2E</td><td><code>cypress/e2e/auth.cy.js</code>, <code>posts.cy.js</code></td><td>5 בדיקות בדפדפן: הרשמה, התחברות, פרופיל, פוסט עם תמונה, רעילות, לייק, רעיונות לתגובה, תשובה מקוננת</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>הבדיקות משתמשות תמיד במוח ה-offline, ולכן הן לא עולות כסף.</li>
+    <li>Cypress צריך את שרתי הפיתוח (<code>npm run cypress:run:app</code> מרים אותם לבד) ו-MySQL מקומי.</li>
+    <li>שבירה מכוונת של הקוד (mutation testing) הראתה שהבדיקות תופסות שינויים: הסרת מגבלת הגודל, השארת נתוני GPS בתמונות, ושינוי הקצב של הבוטים.</li>
+  </ul>
+  <div class="callout gotcha"><b>שים לב: בדיקות שמקבעות ערכים</b><p><code>test_uploads_flow.py</code> בודק ש-<code>MAX_CONTENT_LENGTH == 5 * 1024 * 1024</code>. <code>test_worker_rules.py</code> בודק שברירות המחדל של <code>Pacing()</code> פורשות את הפעולות על פני 20 עד 28 שעות. Cypress מחפש טקסטים: "No posts available yet.", "No beta yet" ו-"Not published".</p></div>
+</section>
+
+<!-- ============================================================ 13 -->
+<section class="topic" id="topic-t13" data-title="ספר מתכונים לשינויים קטנים">
+  <div class="eyebrow">נושא 13 · הכי חשוב למבחן</div>
+  <h2>ספר מתכונים: שינויים קטנים</h2>
+  <p class="lead">14 שינויים שבוחן עלול לבקש. לפני כל שינוי, חפש (grep) את הערך בכל הקוד: הרבה ערכים מופיעים בכמה מקומות.</p>
+  <div class="toolbar"><button type="button" class="btn btn-coral" id="drill-random">תרגיל אקראי</button></div>
+
+  <details class="recipe"><summary><span class="pill p-easy">קל</span> 1. לשנות טקסט במסך (למשל "Rope up first")</summary><div class="body">
+    <p><b>קובץ:</b> <code>src/components/Feed.jsx</code>, בלוק <code>feed-login-prompt</code>.</p>
+<pre><code><span class="diff-del">-                            Rope up first</span>
+<span class="diff-add">+                            Log in to see who you follow</span></code></pre>
+    <p><b>בדיקה:</b> <code>npm run dev</code>, לשונית Following כשלא מחוברים.</p>
+    <p><b>מה יכול להישבר:</b> Cypress מחפש טקסטים מסוימים: "No posts available yet." (<code>auth.cy.js</code>), "No beta yet" ו-"Not published" (<code>posts.cy.js</code>). שינוי שלהם מחייב לעדכן את הבדיקה.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-easy">קל</span> 2. להעביר לפרופיל אחרי פרסום פוסט</summary><div class="body">
+    <p><b>קובץ:</b> <code>src/components/NewPost.jsx</code>, ב-<code>handleSubmit</code>, אחרי <code>createPost</code>.</p>
+<pre><code><span class="diff-del">-            navigate('/');</span>
+<span class="diff-add">+            navigate(`/user-posts/${activeUser.id}`);</span></code></pre>
+    <p><b>בדיקה:</b> לפרסם פוסט ולוודא שהכתובת היא <code>/user-posts/&lt;id&gt;</code>.</p>
+    <p><b>מה יכול להישבר:</b> <code>posts.cy.js</code> בודק <code>cy.location('pathname').should('eq', '/')</code> אחרי פרסום. צריך לעדכן אותו.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-easy">קל</span> 3. לשנות את מגבלת ה-AI מ-10 ל-5 בדקה</summary><div class="body">
+    <p><b>קובץ:</b> <code>backend/routes/ai.py</code>.</p>
+<pre><code><span class="diff-del">-AI_REQUESTS_PER_MINUTE = 10</span>
+<span class="diff-add">+AI_REQUESTS_PER_MINUTE = 5</span></code></pre>
+    <p><b>בדיקה:</b> <code>pytest test/integration/test_ai_endpoints.py</code>. הבדיקות מחליפות את <code>ai_limiter</code> בעצמן (<code>monkeypatch</code>), ולכן הן לא תלויות במספר.</p>
+    <p><b>מה יכול להישבר:</b> ה-README מזכיר "10 AI requests per minute". והמונה נשמר בזיכרון של כל worker, כך שבפועל עם 2 workers המגבלה יכולה להגיע לכפול.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 4. להגביל כותרת פוסט ל-100 תווים (400 ולא 500)</summary><div class="body">
+    <p><b>קובץ:</b> <code>backend/services.py</code>, ב-<code>create_post</code>, אחרי ניקוי הכותרת.</p>
+<pre><code>    title = (title or '').strip()
+<span class="diff-add">+    if len(title) &gt; 100:</span>
+<span class="diff-add">+        raise ValueError('Title must be 100 characters or fewer')</span></code></pre>
+    <p>אפשר להוסיף גם בצד הלקוח, ב-<code>NewPost.jsx</code>: <code>slotProps={{ htmlInput: { maxLength: 100 } }}</code>.</p>
+    <p><b>בדיקה:</b> <code>curl</code> או בדיקת אינטגרציה חדשה: כותרת של 101 תווים מחזירה 400 עם ההודעה.</p>
+    <p><b>מה יכול להישבר:</b> הבוטים: Gemini מוגבל ל-<code>MAX_TITLE = 100</code> ב-<code>gemini.py</code>, אז הם בסדר. ה-offline brain לא נבדק.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 5. לשנות את אורך התגובה המקסימלי מ-1000 ל-500</summary><div class="body">
+    <p><b>שני מקומות:</b> <code>backend/utils.py</code> וגם <code>src/components/CommentThread.jsx</code>.</p>
+<pre><code><span class="diff-del">-MAX_COMMENT_LENGTH = 1000</span>
+<span class="diff-add">+MAX_COMMENT_LENGTH = 500</span>
+<span class="diff-del">-const MAX_COMMENT_LENGTH = 1000;</span>
+<span class="diff-add">+const MAX_COMMENT_LENGTH = 500;</span></code></pre>
+    <p><b>בדיקה:</b> <code>pytest test/unit/test_comment_validation.py</code>. הבדיקות משתמשות בקבוע עצמו ולכן יעברו. במסך, המונה יציג /500.</p>
+    <p><b>מה יכול להישבר:</b> עמודת המסד היא <code>VARCHAR(1000)</code>, וזה בסדר כשמקטינים. תגובות ישנות ארוכות נשארות. ה-offline brain בודק שהתשובות שלו קצרות מהקבוע.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 6. סיסמה של לפחות 10 תווים</summary><div class="body">
+    <p><b>שלושה מקומות:</b> <code>backend/utils.py</code> (<code>is_valid_password</code> ו-<code>PASSWORD_LENGTH_MESSAGE</code>), <code>src/components/Signup.jsx</code> (<code>password.length &lt; 8</code>) ו-<code>src/components/ResetPassword.jsx</code>.</p>
+<pre><code><span class="diff-del">-PASSWORD_LENGTH_MESSAGE = 'Password must be between 8 and 72 characters'</span>
+<span class="diff-add">+PASSWORD_LENGTH_MESSAGE = 'Password must be between 10 and 72 characters'</span>
+<span class="diff-del">-    return isinstance(password, str) and 8 &lt;= len(password) &lt;= 72</span>
+<span class="diff-add">+    return isinstance(password, str) and 10 &lt;= len(password) &lt;= 72</span></code></pre>
+    <p><b>מה יכול להישבר:</b> <code>test_auth_flow.py</code> ו-<code>test_password_reset_flow.py</code> משווים את טקסט ההודעה. סיסמאות הבדיקה (<code>Password123!</code>) ארוכות מספיק. משתמשים קיימים לא מושפעים, כי הבדיקה רצה רק בהרשמה ובאיפוס.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-easy">קל</span> 7. להוסיף סיבת דיווח "violence"</summary><div class="body">
+    <p><b>שני מקומות שחייבים להתאים:</b> <code>backend/utils.py</code> (<code>REPORT_REASONS</code>) ו-<code>src/moderation.js</code>. ההערה שם אומרת "Must match REPORT_REASONS".</p>
+<pre><code><span class="diff-del">-REPORT_REASONS = ('spam', 'harassment', 'hate', 'other')</span>
+<span class="diff-add">+REPORT_REASONS = ('spam', 'harassment', 'hate', 'violence', 'other')</span></code></pre>
+    <p><b>מה יכול להישבר:</b> העמודה היא <code>reason VARCHAR(20)</code>, אז מילה ארוכה מ-20 תווים תיכשל. ההודעה בחלון הדיווח מגיעה מהרשימה ב-<code>moderation.js</code>.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 8. להוסיף מספר תגובות לכל פוסט ב-JSON</summary><div class="body">
+    <p><b>קובץ:</b> <code>backend/services.py</code>, ב-<code>POST_COLUMNS</code>. כל ראוט שמחזיר פוסטים יקבל את השדה.</p>
+<pre><code>    (SELECT COUNT(*) FROM likes WHERE likes.post_id = posts.id) AS likeCount,
+<span class="diff-add">+    (SELECT COUNT(*) FROM comments WHERE comments.post_id = posts.id) AS commentCount,</span>
+    EXISTS (SELECT 1 FROM likes WHERE likes.post_id = posts.id AND likes.user_id = %s) AS likedByMe</code></pre>
+    <p>ואז להציג: להעביר <code>commentCount={post.commentCount}</code> מ-<code>Feed.jsx</code> ל-<code>SinglePost</code> ולהוסיף אותו ליד "Show beta".</p>
+    <p><b>בדיקה:</b> <code>curl http://localhost:5000/api/feed?limit=1</code> ולחפש <code>commentCount</code>.</p>
+    <p><b>מה יכול להישבר:</b> ההערה מעל <code>POST_COLUMNS</code>: יש בו בדיוק <code>%s</code> אחד (מזהה הצופה). אסור להוסיף <code>%s</code> נוסף בלי לעדכן את כל הקריאות.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 9. להוסיף endpoint: <code>GET /api/posts/count</code></summary><div class="body">
+    <p><b>קבצים:</b> <code>backend/services.py</code> + <code>backend/routes/posts.py</code>. ה-Blueprint כבר עם <code>url_prefix='/api'</code> ורשום ב-<code>app.py</code>.</p>
+<pre><code><span class="diff-add">+def count_posts():</span>
+<span class="diff-add">+    with closing(get_db()) as conn, closing(conn.cursor()) as cursor:</span>
+<span class="diff-add">+        cursor.execute("SELECT COUNT(*) FROM posts")</span>
+<span class="diff-add">+        return cursor.fetchone()[0]</span>
+
+<span class="diff-add">+@posts_bp.route('/posts/count', methods=['GET'])</span>
+<span class="diff-add">+def get_post_count():</span>
+<span class="diff-add">+    return jsonify({'count': services.count_posts()}), 200</span></code></pre>
+    <p><b>בדיקה:</b> <code>curl http://localhost:5000/api/posts/count</code>.</p>
+    <p><b>מה יכול להישבר:</b> שם הפונקציה בראוט חייב להיות ייחודי ב-Blueprint. כדי להגביל לחשבונות מחוברים, מוסיפים <code>@login_required</code> מתחת ל-route.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 10. להוסיף עמוד חדש: <code>/rules</code></summary><div class="body">
+    <p><b>קבצים:</b> קומפוננטה חדשה <code>src/components/Rules.jsx</code>, Route ב-<code>App.jsx</code>, וכפתור ב-<code>TopBar.jsx</code>.</p>
+<pre><code><span class="diff-add">+import Rules from './components/Rules';</span>
+<span class="diff-add">+                &lt;Route path="/rules" element={&lt;Rules /&gt;} /&gt;</span>
+<span class="diff-add">+&lt;Button className="topbar-nav-button" onClick={() =&gt; navigate('/rules')}&gt;Rules&lt;/Button&gt;</span></code></pre>
+    <p><b>מה יכול להישבר:</b> ה-Route חייב לבוא <b>לפני</b> <code>path="*"</code>. בטלפון, כפתור נוסף בסרגל מוסיף רוחב לשורת הקישורים, וב-320px הזוג My Profile / Logout כבר עובר לשורה נפרדת.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-easy">קל</span> 11. לגרום לבוטים לענות לאנשים עוד יותר</summary><div class="body">
+    <p><b>קובץ:</b> <code>backend/bots/worker.py</code>.</p>
+<pre><code><span class="diff-del">-HUMAN_WEIGHT = 5</span>
+<span class="diff-add">+HUMAN_WEIGHT = 10</span></code></pre>
+    <p><b>מה יכול להישבר:</b> <code>test_worker_rules.py</code> בודק יחסים (למשל שפוסט של אדם נבחר יותר מ-60% מהפעמים מול פוסט בוט). הגדלה רק מחזקת אותם. הקטנה ל-1 תיכשל, ובכוונה.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 12. להגביל העלאת תמונות ל-3 MB</summary><div class="body">
+    <p><b>ארבעה מקומות:</b> <code>backend/config.py</code> (<code>MAX_UPLOAD_MB</code>), <code>src/components/ImageUpload.jsx</code> (<code>MAX_BYTES</code> והטקסט "up to 5 MB"), ובאופן אופציונלי <code>docker/nginx.conf</code> (<code>client_max_body_size 6m</code>).</p>
+<pre><code><span class="diff-del">-    MAX_UPLOAD_MB = 5</span>
+<span class="diff-add">+    MAX_UPLOAD_MB = 3</span>
+<span class="diff-del">-const MAX_BYTES = 5 * 1024 * 1024;</span>
+<span class="diff-add">+const MAX_BYTES = 3 * 1024 * 1024;</span></code></pre>
+    <p><b>מה יכול להישבר:</b> <code>test_uploads_flow.py</code> בודק <code>== 5 * 1024 * 1024</code> ויכשל. וגם הודעת השגיאה ב-<code>app.py</code> נבנית מ-<code>MAX_UPLOAD_MB</code>, אז היא תתעדכן לבד.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-hard">קשה</span> 13. להוסיף שדה לפוסט מקצה לקצה (למשל <code>location</code>)</summary><div class="body">
+    <ol>
+      <li>Migration חדשה: <code>backend/migrations/007_add_location_to_posts.sql</code>:
+<pre><code>ALTER TABLE posts ADD COLUMN location VARCHAR(100) NULL;</code></pre></li>
+      <li>אותו שינוי בסכמת ה-SQLite של הבדיקות: <code>backend/test/integration/conftest.py</code>.</li>
+      <li><code>services.py</code>: להוסיף את <code>posts.location</code> ל-<code>POST_COLUMNS</code>, ופרמטר ל-<code>create_post</code> ול-<code>INSERT</code>.</li>
+      <li><code>routes/posts.py</code>: להעביר <code>data.get('location')</code>.</li>
+      <li><code>src/api.js</code>: להוסיף את השדה ל-<code>createPost</code>. <code>NewPost.jsx</code>: שדה טקסט. <code>SinglePost.jsx</code>: להציג.</li>
+    </ol>
+    <p><b>בדיקה:</b> <code>python migrate.py --dry-run</code>, ואז <code>python migrate.py</code>, ואז <code>pytest</code>.</p>
+    <p><b>מה יכול להישבר:</b> בלי שלב 2, בדיקות האינטגרציה נכשלות (אין עמודה ב-SQLite). ב-Docker ה-migration רצה לבד בהפעלה הבאה של ה-backend.</p>
+  </div></details>
+
+  <details class="recipe"><summary><span class="pill p-mid">בינוני</span> 14. להפוך את מגבלת ה-AI למשתנה סביבה</summary><div class="body">
+<pre><code><span class="diff-add">+    AI_REQUESTS_PER_MINUTE = int(os.getenv('AI_REQUESTS_PER_MINUTE') or 10)</span>   # backend/config.py
+<span class="diff-del">-AI_REQUESTS_PER_MINUTE = 10</span>
+<span class="diff-add">+AI_REQUESTS_PER_MINUTE = Config.AI_REQUESTS_PER_MINUTE</span>   # backend/routes/ai.py</code></pre>
+    <p>וגם להוסיף ל-<code>.env.example</code>, ול-<code>x-backend-env</code> ב-<code>docker-compose.yml</code>: <code>AI_REQUESTS_PER_MINUTE: ${AI_REQUESTS_PER_MINUTE:-}</code>.</p>
+    <p><b>מה יכול להישבר:</b> בלי ההוספה ל-compose, Docker המקומי לעולם לא יראה את המשתנה. בייצור <code>env_file</code> מעביר את כל <code>backend/.env</code>, אז זה יעבוד שם. <code>or 10</code> (ולא ברירת מחדל של getenv) מטפל גם במחרוזת ריקה ש-compose מעביר.</p>
+  </div></details>
+</section>
+
+<!-- ============================================================ 14 -->
+<section class="topic" id="topic-t14" data-title="שאלות למבחן">
+  <div class="eyebrow">נושא 14</div>
+  <h2>שאלות סבירות למבחן</h2>
+  <p class="lead">לפי התחומים של הבוחן: אבטחת GenAI ועמידות, ארכיטקטורה ותשתית, איכות קוד ובדיקות.</p>
+  <div class="toolbar">
+    <button type="button" class="btn btn-coral" id="qa-random">שאלה אקראית</button>
+    <button type="button" class="btn" id="qa-reveal">הצג את כל התשובות</button>
+    <button type="button" class="btn" id="qa-hide">הסתר הכול</button>
+  </div>
+
+  <h3>אבטחת GenAI ועמידות</h3>
+  <div class="qa"><div class="q">איפה מפתח ה-API של Gemini, ואפשר לגנוב אותו מהדפדפן?</div><div class="answer">רק ב-<code>.env</code> בשרת, לא ב-git. הדפדפן פונה ל-Flask, ו-Flask פונה ל-Gemini, ולכן המפתח לא נמצא בשום קוד שמגיע לדפדפן.</div></div>
+  <div class="qa"><div class="q">מה קורה כש-Gemini איטי או נופל?</div><div class="answer">שלוש שכבות: timeout של 15 שניות (פחות מ-30 השניות של gunicorn); <code>FallbackBrain</code> עובר למוח ה-offline, כך שמשתמש תמיד מקבל תשובה; ובוטים דווקא מדלגים (<code>fallback=False</code>), כדי לא לפרסם טקסט מתבנית.</div></div>
+  <div class="qa"><div class="q">איך עובד ה-rate limiting, ואיפה נשמר המונה?</div><div class="answer"><code>SlidingWindowLimiter</code>: 10 בקשות AI בדקה למשתמש, 3 מיילי איפוס ל-15 דקות לכתובת, ו-30 העלאות בשעה. ההגבלה רצה אחרי <code>@login_required</code>, ומחזירה 429 עם <code>Retry-After</code>. המונה בזיכרון של כל worker, כך שעם 2 workers המגבלה בפועל כפולה, והיא מתאפסת בהפעלה מחדש. הפתרון: Redis.</div></div>
+  <div class="qa"><div class="q">מה זה prompt injection ואיך מתגוננים?</div><div class="answer">משתמש כותב "התעלם מההוראות". ההגנה: הטקסט בתוך תגיות, ותגיות סוגרות נמחקות ממנו (<code>prompts.py</code>); ההנחיה אומרת שזה מידע בלבד; תשובת המודל חייבת להיות JSON תקין (<code>allowed</code> בוליאני), אחרת זו שגיאה; ומה שמוצג מנוקה (DOMPurify, escape ל-HTML).</div></div>
+  <div class="qa"><div class="q">מה קורה אם בדיקת הרעילות עצמה נכשלת?</div><div class="answer">לאנשים: עוברים לרשימת המילים של המוח ה-offline, אז משהו תמיד בודק. לבוטים (<code>strict=True</code>): <code>ModerationUnavailable</code>, ולא מפרסמים בכלל.</div></div>
+  <div class="qa"><div class="q">איך הבוטים לא גומרים את המכסה?</div><div class="answer">5 עד 15 דקות בין פעולות, עד 12 פעולות לבוט ביום, ו-20% מהפעולות הן לייקים שלא צריכים AI. בסך הכול כ-230 קריאות מתוך 500.</div></div>
+
+  <h3>ארכיטקטורה ותשתית</h3>
+  <div class="qa"><div class="q">תעביר אותי על לחיצת לייק מקצה לקצה.</div><div class="answer"><code>LikeButton</code> ← <code>likePost</code> ב-<code>api.js</code> ← <code>PUT /api/posts/17/like</code> עם cookie ← nginx ← <code>backend:5000</code> ← gunicorn ← <code>posts.like</code> ← <code>@login_required</code> בודק את <code>sessions</code> ← <code>services.like_post</code> ← INSERT ל-<code>likes</code> ← JSON עם <code>likeCount</code> ← React מעדכן.</div></div>
+  <div class="qa"><div class="q">למה צריך nginx?</div><div class="answer">מקור אחד לדף ול-API (בלי CORS, ה-cookie נשלח לבד); הגשת קבצי React ותמונות בלי Python; פורט 5000 לא חשוף; <code>client_max_body_size 6m</code>; <code>try_files … /index.html</code> כדי שרענון של כל כתובת יעבוד.</div></div>
+  <div class="qa"><div class="q">כמה קונטיינרים בייצור ולמה?</div><div class="answer">שלושה: frontend, backend ו-worker. ה-backend וה-worker מאותו image עם פקודה שונה. המסד ב-RDS, שירות מנוהל, ולא קונטיינר. MySQL בקונטיינר רק מקומית.</div></div>
+  <div class="qa"><div class="q">למה בונים את ה-images על הלפטופ?</div><div class="answer">ל-EC2 יש 1 GB זיכרון, ובנייה של React ו-Pillow עלולה לקרוס. בונים במחשב, <code>docker save</code>, <code>scp</code>, <code>docker load</code>, ומסמנים <code>:previous</code> לחזרה. החיסרון: ידני, ואין CI.</div></div>
+  <div class="qa"><div class="q">איך משנים סכמה בלי לאבד נתונים?</div><div class="answer">migration ממוספרת חדשה. <code>migrate.py</code> רושם מה רץ ב-<code>schema_migrations</code>, ו-<code>--dry-run</code> לפני deploy. וגם לעדכן את סכמת ה-SQLite ב-<code>conftest.py</code>.</div></div>
+  <div class="qa"><div class="q">למה sessions ולא JWT?</div><div class="answer">צריך ביטול מיידי. התנתקות מוחקת שורה, איפוס סיסמה מוחק את כל ה-sessions, וחסימה נבדקת בכל בקשה. עם JWT הטוקן תקף עד שפג. המחיר: שאילתה אחת בכל בקשה, זניח עם מסד אחד.</div></div>
+  <div class="qa"><div class="q">מה מגן על ה-cookie?</div><div class="answer"><code>HttpOnly</code>: JavaScript לא קורא אותו (הגנה מ-XSS). <code>SameSite=Lax</code>: לא נשלח בבקשות POST, PUT ו-DELETE מאתר זר (הגנה מ-CSRF). אין <code>Secure</code>, כי האתר ב-HTTP.</div></div>
+
+  <h3>איכות קוד ובדיקות</h3>
+  <div class="qa"><div class="q">איך הקוד בנוי?</div><div class="answer">ראוטים דקים; כל הלוגיקה וה-SQL ב-<code>services.py</code>; החיבור ב-<code>db.py</code>. ה-worker משתמש באותו <code>services.py</code>, ולכן כפוף לאותם כללים.</div></div>
+  <div class="qa"><div class="q">איך אתה מטפל בשגיאות?</div><div class="answer">כל שגיאה היא <code>{"message": ...}</code> עם 400, 401, 403, 404, 409, 413 או 429. <code>handleResponse</code> מציג את ההודעה של השרת. כל סיבוב של הבוטים עטוף ב-<code>try/except</code>, כך ששגיאה אחת לא עוצרת את הלולאה.</div></div>
+  <div class="qa"><div class="q">איך יודעים שהבדיקות באמת בודקות משהו?</div><div class="answer">כיסוי מראה רק שהקוד רץ. שברתי את הקוד בכוונה (mutation testing), ווידאתי שבדיקה נכשלת בכל שינוי. כשבדיקה לא נכשלה, הוספתי בדיקה.</div></div>
+  <div class="qa"><div class="q">מה החולשות של הפרויקט?</div><div class="answer">Rate limiting בזיכרון; sessions לא פגים; HTTP בלי TLS; תצוגת התחברות מ-<code>localStorage</code> בלי אימות; pagination לפי offset (כפילויות אפשריות); אין CI. לכל אחד יש פתרון ידוע: Redis, תפוגה, Let's Encrypt, <code>/api/auth/me</code> בהעלאה, cursor pagination, GitHub Actions.</div></div>
+  <div class="qa"><div class="q">למה <code>[...posts, ...data]</code> ולא <code>push</code>?</div><div class="answer">React מזהה שינוי לפי אובייקט חדש. <code>push</code> משנה את אותו מערך, ו-React לא יצייר מחדש.</div></div>
+  <div class="qa"><div class="q">מה קורה בלי <code>removeEventListener</code> ב-cleanup?</div><div class="answer">כל כניסה לעמוד מוסיפה עוד מאזין גלילה, וגלילה אחת מפעילה כמה טעינות. זו דליפת זיכרון.</div></div>
+
+  <h3>הסבר ב-30 שניות לכל רכיב</h3>
+  <div class="thirty"><b>Frontend:</b> React SPA; <code>App.jsx</code> מנתב ומחזיק את המשתמש; <code>api.js</code> הוא הדלת היחידה לשרת; כתובת יחסית <code>/api</code>.</div>
+  <div class="thirty"><b>Backend:</b> Flask עם Blueprints; <code>login_required</code> בודק session בטבלה; <code>services.py</code> מחזיק לוגיקה ו-SQL; שגיאות כ-JSON.</div>
+  <div class="thirty"><b>מסד:</b> 9 טבלאות, CASCADE, מפתחות זוגיים ללייקים ולמעקבים, migrations ממוספרות.</div>
+  <div class="thirty"><b>AI:</b> ממשק Brain; Gemini עם timeout ובדיקת JSON; גיבוי offline לאנשים, דילוג לבוטים; בדיקת רעילות לפני כל פרסום.</div>
+  <div class="thirty"><b>בוטים:</b> תהליך נפרד, פעולה כל 5 עד 15 דקות, משקל פי 5 לאנשים, אותם כללים כמו לאנשים.</div>
+  <div class="thirty"><b>תשתית:</b> nginx, backend ו-worker ב-EC2, RDS, volume לתמונות, deploy ידני עם <code>:previous</code>.</div>
+</section>
+
+<!-- ============================================================ 15 -->
+<section class="topic" id="topic-t15" data-title="מילון מונחים">
+  <div class="eyebrow">נושא 15</div>
+  <h2>מילון מונחים</h2>
+  <p class="lead">המונחים שחוזרים בקוד ובשאלות.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>מונח</th><th>פירוש</th></tr></thead>
+    <tbody>
+      <tr><td>SPA</td><td>אפליקציה בדף אחד; React מחליף תוכן בלי טעינה מחדש</td></tr>
+      <tr><td>Component / Props / State</td><td>חלק מסך כפונקציה / נתונים מאב לבן / זיכרון שמשנה גורם לציור מחדש</td></tr>
+      <tr><td>Hook</td><td>פונקציה שמתחילה ב-<code>use</code> (useState, useEffect, useParams)</td></tr>
+      <tr><td>useEffect + cleanup</td><td>קוד שרץ אחרי ציור; הפונקציה שהוא מחזיר מנקה (מאזינים, דגלים)</td></tr>
+      <tr><td>Effect Event</td><td><code>useEffectEvent</code> (React 19.2): פונקציה שתמיד רואה ערכים עדכניים</td></tr>
+      <tr><td>Race condition</td><td>תשובה ישנה מגיעה אחרי חדשה ודורסת אותה; כאן נפתר ב-<code>listKey</code> ו-<code>ignore</code></td></tr>
+      <tr><td>Immutability</td><td>לא משנים state קיים, יוצרים עותק</td></tr>
+      <tr><td>Blueprint</td><td>קבוצת ראוטים ב-Flask, עם prefix משותף</td></tr>
+      <tr><td>Decorator</td><td>עוטף פונקציה (<code>@login_required</code>, <code>@ai_rate_limited</code>)</td></tr>
+      <tr><td>Service layer</td><td>שכבת הלוגיקה וה-SQL, <code>services.py</code></td></tr>
+      <tr><td>Opaque token / session</td><td>מחרוזת אקראית בלי מידע, שממופה למשתמש בטבלה</td></tr>
+      <tr><td>HttpOnly / SameSite</td><td>JS לא קורא את ה-cookie / ה-cookie לא נשלח מאתר זר</td></tr>
+      <tr><td>bcrypt / SHA-256</td><td>hash איטי לסיסמאות / hash מהיר לטוקנים אקראיים</td></tr>
+      <tr><td>Migration</td><td>קובץ SQL ממוספר שמשנה סכמה, רץ פעם אחת</td></tr>
+      <tr><td>CASCADE</td><td>מחיקת שורה מוחקת את מה שתלוי בה</td></tr>
+      <tr><td>Reverse proxy</td><td>nginx מקבל את הבקשה ומעביר אותה לשרת פנימי</td></tr>
+      <tr><td>Image / Container / Volume</td><td>תבנית / תהליך רץ ממנה / אחסון ששורד מחיקת קונטיינר</td></tr>
+      <tr><td>Healthcheck</td><td>בדיקה תקופתית ש-Docker מריץ כדי לדעת שהשירות חי</td></tr>
+      <tr><td>RDS / Elastic IP</td><td>MySQL מנוהל ב-AWS / כתובת IP קבועה</td></tr>
+      <tr><td>Sliding window</td><td>הגבלת קצב שסופרת בקשות ב-X השניות האחרונות</td></tr>
+      <tr><td>Fallback</td><td>מעבר למוח ה-offline כש-Gemini נכשל</td></tr>
+      <tr><td>Toxicity check</td><td>בדיקה לפני פרסום שהטקסט לא פוגעני</td></tr>
+      <tr><td>Prompt injection</td><td>ניסיון לתת למודל הוראות דרך התוכן</td></tr>
+      <tr><td>Offset / cursor pagination</td><td>"דלג על 10" / "ישנים מ-id X"; השני לא יוצר כפילויות</td></tr>
+      <tr><td>CORS</td><td>מגבלת דפדפן על בקשות לדומיין אחר; נמנעת כאן בזכות nginx</td></tr>
+      <tr><td>Tick / Pacing</td><td>סיבוב אחד של ה-worker / הגדרות הקצב של הבוטים</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ============================================================ 16 -->
+<section class="topic" id="topic-t16" data-title="דף לילה לפני">
+  <div class="eyebrow">נושא 16</div>
+  <h2>דף לילה לפני</h2>
+  <p class="lead">כל מה שצריך לזכור, בדף אחד.</p>
+
+  <h3>פקודות</h3>
+  <pre><code>docker compose up --build                 # everything locally, http://localhost:8080
+docker compose stop worker                # stop the local bots (shared Gemini quota)
+npm run start:all                         # Flask :5000 + Vite :5173 (Windows script)
+cd backend; venv\Scripts\python -m pytest --cov --cov-config=.coveragerc
+python migrate.py --dry-run               # pending migrations
+python -m moderation.admins grant someone@example.com
+python -m bots.worker --min-sleep 5 --max-sleep 15 --cooldown 60</code></pre>
+
+  <h3>פורטים וכתובות</h3>
+  <div class="table-wrap"><table><tbody>
+    <tr><td>5173</td><td>Vite (פיתוח)</td></tr>
+    <tr><td>5000</td><td>Flask (פיתוח, ובתוך Docker)</td></tr>
+    <tr><td>8080</td><td>Docker מקומי (<code>WEB_PORT</code>)</td></tr>
+    <tr><td>80</td><td>ייצור, <code>http://52.58.108.126</code></td></tr>
+    <tr><td>3306</td><td>MySQL (פנימי ב-Docker)</td></tr>
+  </tbody></table></div>
+  <p><b>חשבונות:</b> אדמין נותנים רק משורת הפקודה. חשבון הבודקים נמסר בנפרד, ולא כתוב כאן.</p>
+
+  <h3>מספרים</h3>
+  <div class="grid">
+    <div class="card"><h4>12</h4><p>בוטים</p></div>
+    <div class="card"><h4>485 / 94%</h4><p>בדיקות / כיסוי (סף 85%)</p></div>
+    <div class="card"><h4>10 / דקה</h4><p>בקשות AI למשתמש</p></div>
+    <div class="card"><h4>15 s / 30 s</h4><p>timeout של Gemini / של gunicorn</p></div>
+    <div class="card"><h4>5 MB / 6 MB</h4><p>Flask / nginx</p></div>
+    <div class="card"><h4>30 דק'</h4><p>תוקף קישור איפוס</p></div>
+    <div class="card"><h4>300 עד 900 s</h4><p>שינה בין סיבובי בוטים</p></div>
+    <div class="card"><h4>12 / 600 s / 3</h4><p>פעולות ביום / מנוחה / עומק</p></div>
+    <div class="card"><h4>10 / 50</h4><p>גודל עמוד / מקסימום</p></div>
+    <div class="card"><h4>1000 / 8 עד 72</h4><p>אורך תגובה / סיסמה</p></div>
+    <div class="card"><h4>500 ביום</h4><p>מכסת Gemini לפרויקט</p></div>
+    <div class="card"><h4>×5</h4><p>משקל לפוסטים של אנשים</p></div>
+  </div>
+
+  <h3>כל זרימה בשורה</h3>
+  <ul>
+    <li><b>התחברות:</b> <code>Login</code> ← <code>/api/login</code> ← bcrypt ← שורה ב-<code>sessions</code> ← cookie HttpOnly ← <code>localStorage</code>.</li>
+    <li><b>פוסט:</b> <code>NewPost</code> ← <code>/api/posts</code> ← <code>login_required</code> ← ניקוי HTML ← בדיקת רעילות ← INSERT ← 201.</li>
+    <li><b>לייק:</b> PUT ← <code>like_post</code> ← מפתח זוגי ← <code>likeCount</code>.</li>
+    <li><b>איפוס:</b> מייל ← SHA-256 במסד ← קישור עם <code>#token</code> ← 30 דקות, פעם אחת ← כל ה-sessions נמחקים.</li>
+    <li><b>בוט:</b> סיבוב ← בחירת בוט ופעולה ← Gemini בלי גיבוי ← בדיקת רעילות strict ← שינה.</li>
+  </ul>
+  <div class="callout tip"><b>טיפ אחרון</b><p>לפני המבחן: להפעיל את EC2 ואת RDS ב-AWS lab, לחכות ש-RDS יהיה Available, ולפתוח את האתר.</p></div>
+</section>
+
+  </main>
+</div>
+
+<dialog class="zoom" id="zoom" aria-labelledby="zoom-title">
+  <div class="zhead"><b id="zoom-title"></b><button type="button" class="btn" id="zoom-close">סגור</button></div>
+  <div class="zbody"></div>
+</dialog>
+
+<footer class="foot">My Beta · <span>מדריך למבחן</span> · נבנה מהקומיט 8c70ebe. מספרי שורות זזים; חפש לפי שם הפונקציה.</footer>
+
+<script src="assets/seq-data.js?v=1"></script>
+<script src="assets/guide.js?v=1"></script>
+</body>
+</html>
