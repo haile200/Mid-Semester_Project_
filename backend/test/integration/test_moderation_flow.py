@@ -207,6 +207,45 @@ def test_dismissing_clears_the_reports_from_the_dashboard(db):
     assert (status, reviewer) == ('dismissed', user_id(db, MOD))
 
 
+def test_reporting_again_after_a_dismissal_reopens_the_report(db):
+    # Arrange: Bob's report was reviewed and dismissed.
+    post_id = write_post(signed_in(ALICE))
+    bob = signed_in(BOB)
+    first_id = report(bob, post_id, 'spam', 'looks like an ad').get_json()['reportId']
+    mod = signed_in(MOD, admin=True)
+    mod.patch(f'/api/admin/posts/{post_id}/reports', json={'status': 'dismissed'})
+
+    # Act
+    response = report(bob, post_id, 'hate', 'now it is offensive')
+
+    # Assert: the same row is open again with the new details, and the dashboard shows it.
+    assert response.status_code == 201
+    assert response.get_json()['reportId'] == first_id
+    assert db.execute('SELECT COUNT(*) FROM reports').fetchone()[0] == 1
+    status, reviewer, reviewed_at = db.execute('SELECT status, reviewed_by, reviewed_at FROM reports').fetchone()
+    assert (status, reviewer, reviewed_at) == ('open', None, None)
+    groups = mod.get('/api/admin/reports').get_json()
+    assert [group['post']['id'] for group in groups] == [post_id]
+    assert groups[0]['reports'][0]['reason'] == 'hate'
+    assert groups[0]['reports'][0]['note'] == 'now it is offensive'
+
+
+def test_a_reopened_report_is_a_conflict_again_until_it_is_reviewed(db):
+    # Arrange
+    post_id = write_post(signed_in(ALICE))
+    bob = signed_in(BOB)
+    report(bob, post_id)
+    signed_in(MOD, admin=True).patch(f'/api/admin/posts/{post_id}/reports', json={'status': 'dismissed'})
+    report(bob, post_id)
+
+    # Act
+    third = report(bob, post_id)
+
+    # Assert
+    assert third.status_code == 409
+    assert db.execute('SELECT COUNT(*) FROM reports').fetchone()[0] == 1
+
+
 def test_dismissing_needs_a_valid_status_and_an_existing_post(db):
     # Arrange
     post_id = write_post(signed_in(ALICE))

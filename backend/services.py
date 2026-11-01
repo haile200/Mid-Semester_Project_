@@ -428,7 +428,8 @@ def create_report(post_id, reporter_id, reason, note):
     """Store a report and return its id.
 
     Raises ValueError for bad input or reporting your own post, LookupError if the post is missing,
-    and AlreadyReported for a second report by the same user.
+    and AlreadyReported while the same user's report is still open. Reporting again after a dismissal
+    reopens that report, since the post may have become a problem since it was reviewed.
     """
     reason, note = clean_report(reason, note)
 
@@ -440,9 +441,23 @@ def create_report(post_id, reporter_id, reason, note):
         if post[0] == reporter_id:
             raise ValueError('You cannot report your own post')
 
-        cursor.execute("SELECT 1 FROM reports WHERE post_id = %s AND reporter_id = %s", (post_id, reporter_id))
-        if cursor.fetchone():
+        cursor.execute("SELECT id, status FROM reports WHERE post_id = %s AND reporter_id = %s", (post_id, reporter_id))
+        existing = cursor.fetchone()
+        if existing and existing[1] == 'open':
             raise AlreadyReported('You already reported this post')
+        if existing:
+            # The unique key allows one row per person per post, so the dismissed row is reused.
+            cursor.execute(
+                """
+                UPDATE reports
+                SET status = 'open', reason = %s, note = %s, created_at = CURRENT_TIMESTAMP,
+                    reviewed_by = NULL, reviewed_at = NULL
+                WHERE id = %s
+                """,
+                (reason, note, existing[0])
+            )
+            conn.commit()
+            return existing[0]
 
         cursor.execute(
             "INSERT INTO reports (post_id, reporter_id, reason, note) VALUES (%s, %s, %s, %s)",
